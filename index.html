@@ -76,7 +76,7 @@
         <a href="https://github.com/rzazo24/nostr-ephemeral-chat" rel="noopener noreferrer" data-t="Source code"></a></p>
     </footer>
   </main>
-  <dialog id="help" aria-labelledby="help-title">
+  <dialog id="help" aria-labelledby="help-title" tabindex="-1" autofocus>
     <div class="help-head"><h2 id="help-title" data-t="Help"></h2><button type="button" id="help-close" data-t="Close"></button></div>
     <h3 data-t="How it works"></h3>
     <p data-t="Every time you open the chat you get a brand-new random room and a brand-new identity (a random name like calm-otter-42)."></p>
@@ -103,10 +103,10 @@
     <h3 data-t="About"></h3>
     <p><span data-t="Relay:"></span> <code id="help-relay"></code> · <a href="https://github.com/rzazo24/nostr-ephemeral-chat" target="_blank" rel="noopener noreferrer" data-t="Source code"></a></p>
     <h3 data-t="If something fails"></h3>
-    <p data-t="If the status shows “offline”, the chat reconnects by itself. Messages written meanwhile are not sent."></p>
+    <p data-t="If the status shows “reconnecting…”, the chat reconnects by itself. Messages written meanwhile are not sent."></p>
     <p data-t="The relay limits how fast you can send. If a message is rejected, the reason appears in the chat; wait a few seconds and try again."></p>
   </dialog>
-  <dialog id="qr" aria-labelledby="qr-title">
+  <dialog id="qr" aria-labelledby="qr-title" tabindex="-1" autofocus>
     <div class="help-head"><h2 id="qr-title" data-t="QR code"></h2><button type="button" id="qr-close" data-t="Close"></button></div>
     <img id="qr-img" alt="" width="320" height="320">
     <p data-t="Scan it to join this room. Show it only to people next to you."></p>

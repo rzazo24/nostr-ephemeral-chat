@@ -78,7 +78,7 @@ let people: { nick: string; mine: boolean }[] = []
 let unread = 0
 let bell = notify.isOn()
 
-const STATUS = { connecting: 'connecting…', open: 'connected', closed: 'offline, retrying…' } as const
+const STATUS = { connecting: 'connecting…', open: 'connected', closed: 'reconnecting…' } as const
 
 /** (Re)writes every text that depends on the language. */
 function render() {
@@ -258,7 +258,7 @@ if (typeof navigator.share === 'function') {
 
 // QR code of the room link, for passing it to a phone next to you.
 const qr = $<HTMLDialogElement>('qr')
-$('qr-btn').addEventListener('click', () => { $<HTMLImageElement>('qr-img').src = qrDataUrl(location.href); qr.showModal() })
+$('qr-btn').addEventListener('click', () => { $<HTMLImageElement>('qr-img').src = qrDataUrl(location.href); qr.showModal(); qr.focus({ preventScroll: true }) })
 $('qr-close').addEventListener('click', () => qr.close())
 qr.addEventListener('click', (e) => { if (e.target === qr) qr.close() })
 
@@ -300,7 +300,7 @@ if (CUSTOM_RELAY) {
 
 // Help dialog (native <dialog>: Escape closes it; a click on the backdrop does too).
 const help = $<HTMLDialogElement>('help')
-$('help-btn').addEventListener('click', () => help.showModal())
+$('help-btn').addEventListener('click', () => { help.showModal(); help.focus({ preventScroll: true }) })
 $('help-close').addEventListener('click', () => help.close())
 help.addEventListener('click', (e) => { if (e.target === help) help.close() })
 
