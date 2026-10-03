@@ -3,14 +3,15 @@ import { joinRoom } from './chat'
 import { getLang, setLang, t, type Lang } from './i18n'
 import { randomRoomId, validRoomId } from './names'
 
-const DEFAULT_RELAY = 'wss://relay.hivescope.xyz'
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T
 
-// The relay can be changed with ?relay=wss://… (it stays in the link you share) or from the footer.
-const params = new URLSearchParams(location.search)
+// The deployed build is pinned to one relay (that is what lets the server send a strict CSP). Choosing another relay with
+// ?relay=wss://… or from the footer is only enabled in development, or when built with VITE_ALLOW_CUSTOM_RELAY=1.
+const DEFAULT_RELAY: string = import.meta.env.VITE_RELAY || 'wss://relay.hivescope.xyz'
+const CUSTOM_RELAY = import.meta.env.DEV || import.meta.env.VITE_ALLOW_CUSTOM_RELAY === '1'
 const relayUrl = (() => {
-  const r = params.get('relay')
-  return r && /^wss?:\/\/\S+$/.test(r) ? r : DEFAULT_RELAY
+  const r = new URLSearchParams(location.search).get('relay')
+  return CUSTOM_RELAY && r && /^wss?:\/\/\S+$/.test(r) ? r : DEFAULT_RELAY
 })()
 
 // Room: it lives in the fragment (#room) so it never reaches any server. Without a valid room a new one is created.
@@ -38,7 +39,7 @@ function render() {
   statusEl.dataset.state = state
   $('online').textContent = others.length ? t('With: {names}', { names: others.join(', ') }) : t('Just you for now')
   $('lang').textContent = getLang() === 'en' ? 'ES' : 'EN'
-  $('relay-link').title = t('Change relay')
+  if (CUSTOM_RELAY) $('relay-link').title = t('Change relay')
 }
 
 function addLine(cls: string, nick: string, text: string, at: number) {
@@ -102,13 +103,17 @@ $('new').addEventListener('click', () => {
 
 $('lang').addEventListener('click', () => { setLang((getLang() === 'en' ? 'es' : 'en') as Lang); render() })
 
-$('relay-link').addEventListener('click', (e) => {
-  e.preventDefault()
-  const v = prompt(t('Relay address (wss://…). A new room will open on it:'), relayUrl)
-  if (v && /^wss?:\/\/\S+$/.test(v) && v !== relayUrl) {
-    room.leave()
-    location.href = `${location.pathname}?relay=${encodeURIComponent(v)}`
-  }
-})
+if (CUSTOM_RELAY) {
+  $('relay-link').addEventListener('click', (e) => {
+    e.preventDefault()
+    const v = prompt(t('Relay address (wss://…). A new room will open on it:'), relayUrl)
+    if (v && /^wss?:\/\/\S+$/.test(v) && v !== relayUrl) {
+      room.leave()
+      location.href = `${location.pathname}?relay=${encodeURIComponent(v)}`
+    }
+  })
+} else {
+  $('relay-link').removeAttribute('href')
+}
 
 addEventListener('pagehide', () => room.leave())

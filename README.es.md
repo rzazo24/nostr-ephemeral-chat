@@ -14,7 +14,7 @@ Se conecta por defecto a `wss://relay.hivescope.xyz` (vale cualquier relé que a
 - **Identidad**: una clave secp256k1 nueva en cada visita, solo en memoria. El apodo (p. ej. `calm-otter-42`) sale de la clave pública, así todos ven el mismo.
 - **Sala**: un id aleatorio de 80 bits en el fragmento de la URL (`#…`), que los navegadores nunca envían a ningún servidor.
 - **Privacidad**: del id de sala se deriva (HKDF) una clave AES-GCM con la que se cifra el contenido, y la etiqueta de sala que se publica en el relé es un hash SHA-256 del id. Quien administra el relé ve quién habla, cuándo y cuánto, pero no qué, y no puede entrar en una sala sin el enlace. **No** sustituye a un protocolo de cifrado extremo a extremo revisado: cualquiera con el enlace puede leer y escribir, y no hay secreto hacia delante.
-- **Relé**: cámbialo con `?relay=wss://…` en la URL (queda en el enlace que compartes) o desde el pie de página.
+- **Relé**: la versión desplegada va fijada a un relé (`VITE_RELAY`, por defecto `wss://relay.hivescope.xyz`), lo que permite una CSP estricta. En desarrollo, o compilando con `VITE_ALLOW_CUSTOM_RELAY=1`, puedes elegir otro con `?relay=wss://…` o desde el pie de página.
 - **Idiomas**: inglés y español, con un botón en la cabecera. Por defecto, el del navegador.
 
 ## Desarrollo
@@ -27,7 +27,17 @@ RELAY_URL=wss://relay.hivescope.xyz npm test
 npm run build      # sitio estático en dist/
 ```
 
-La compilación es un sitio estático: sirve `dist/` desde donde quieras (Caddy, nginx, GitHub Pages…). Hace falta HTTPS para el botón de copiar y para `wss://`.
+La compilación es un sitio estático: sirve `dist/` desde donde quieras, con HTTPS (hace falta para el botón de copiar y para `wss://`).
+
+### Despliegue junto a un relé (Caddy)
+
+`scripts/deploy.sh` publica el chat a través del Caddy de un despliegue de [nostr-relay-khatru](https://github.com/rzazo24/nostr-relay-khatru), con una CSP estricta (`deploy/chat.caddy.template`):
+
+```bash
+./scripts/deploy.sh ~/ruta/a/nostr-relay-khatru chat.ejemplo.com wss://relay.ejemplo.com
+```
+
+Necesita un registro DNS del dominio del chat hacia el servidor, y que el Caddyfile del repo del relé haga `import /etc/caddy/sites/*.caddy` con `./sites` montado (ya ocurre en las versiones recientes).
 
 ## Estructura
 

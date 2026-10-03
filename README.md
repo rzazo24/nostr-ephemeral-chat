@@ -14,7 +14,7 @@ It connects to `wss://relay.hivescope.xyz` by default (any relay that accepts ep
 - **Identity**: a fresh secp256k1 key on every visit, kept in memory only. The nickname (e.g. `calm-otter-42`) is derived from the public key, so everybody sees the same one.
 - **Room**: a random 80-bit id in the URL fragment (`#…`), which browsers never send to any server.
 - **Privacy**: the room id derives (HKDF) an AES-GCM key. Message contents are encrypted with it, and the room tag published to the relay is a SHA-256 hash of the id. The relay operator sees who talks when and how much, but not what, and cannot join a room without the link. It is *not* a substitute for a vetted end-to-end protocol: anyone with the link can read and write, and there is no forward secrecy.
-- **Relay**: change it with `?relay=wss://…` in the URL (it stays in the link you share) or from the footer.
+- **Relay**: the deployed build is pinned to one relay (`VITE_RELAY`, default `wss://relay.hivescope.xyz`), which allows a strict CSP. In development, or when built with `VITE_ALLOW_CUSTOM_RELAY=1`, you can pick another with `?relay=wss://…` or from the footer.
 - **Languages**: English and Spanish, switch in the header. Defaults to the browser language.
 
 ## Develop
@@ -27,7 +27,17 @@ RELAY_URL=wss://relay.hivescope.xyz npm test
 npm run build      # static site in dist/
 ```
 
-The build is a static site: serve `dist/` from anywhere (Caddy, nginx, GitHub Pages…). Serving it over HTTPS is required for the clipboard button and for `wss://`.
+The build is a static site: serve `dist/` from anywhere over HTTPS (needed for the clipboard button and `wss://`).
+
+### Deploy next to a relay (Caddy)
+
+`scripts/deploy.sh` publishes the chat through the Caddy of a [nostr-relay-khatru](https://github.com/rzazo24/nostr-relay-khatru) deployment, with a strict CSP (`deploy/chat.caddy.template`):
+
+```bash
+./scripts/deploy.sh ~/path/to/nostr-relay-khatru chat.example.com wss://relay.example.com
+```
+
+It needs a DNS record for the chat domain pointing at the server, and the relay repo's Caddyfile to `import /etc/caddy/sites/*.caddy` with `./sites` mounted (already the case in recent versions).
 
 ## Layout
 
