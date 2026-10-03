@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "license": "MIT",
-  "description": "Ephemeral Nostr chat: a new random room and a new identity on every visit.",
+  "description": "Ephemeral Nostr chat: a new random room and a new identity on every visit. Messages are encrypted with a key derived from the room link.",
   "homepage": "https://chat.hivescope.xyz",
   "repository": "github:rzazo24/nostr-ephemeral-chat",
   "keywords": ["nostr", "chat", "ephemeral", "privacy", "websocket"],
