@@ -27,6 +27,20 @@ if (isNew) {
   history.replaceState(null, '', `${location.pathname}${location.search}#${roomId}`)
 }
 
+// Installable app: register the service worker (production only) and offer "Install" where the browser supports it.
+// iOS has no install prompt: there the help explains "Share → Add to Home Screen".
+// This runs before the first `await` below on purpose: after it, the page's `load` event may already have fired.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  const register = () => navigator.serviceWorker.register('/sw.js').catch(() => { /* works without it */ })
+  if (document.readyState === 'complete') register()
+  else addEventListener('load', register)
+}
+interface InstallPromptEvent extends Event { prompt(): Promise<void> }
+let installEvent: InstallPromptEvent | undefined
+addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEvent = e as InstallPromptEvent; $('install').hidden = false })
+addEventListener('appinstalled', () => { installEvent = undefined; $('install').hidden = true })
+$('install').addEventListener('click', async () => { await installEvent?.prompt(); installEvent = undefined; $('install').hidden = true })
+
 const log = $<HTMLUListElement>('log')
 const statusEl = $('status')
 const statusText = $('status-text')
@@ -205,17 +219,6 @@ $<HTMLFormElement>('form').addEventListener('submit', async (e) => {
   }
   input.focus()
 })
-
-// Installable app: register the service worker (production only) and offer "Install" where the browser supports it.
-// iOS has no install prompt: there the help explains "Share → Add to Home Screen".
-if (import.meta.env.PROD && 'serviceWorker' in navigator) {
-  addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => { /* works without it */ }) })
-}
-interface InstallPromptEvent extends Event { prompt(): Promise<void> }
-let installEvent: InstallPromptEvent | undefined
-addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEvent = e as InstallPromptEvent; $('install').hidden = false })
-addEventListener('appinstalled', () => { installEvent = undefined; $('install').hidden = true })
-$('install').addEventListener('click', async () => { await installEvent?.prompt(); installEvent = undefined; $('install').hidden = true })
 
 // Native share sheet (phones, some desktops); the plain copy button is always there.
 if (typeof navigator.share === 'function') {

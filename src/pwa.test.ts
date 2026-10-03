@@ -31,4 +31,9 @@ describe('PWA files', () => {
     expect(readFileSync('public/sw.js', 'utf8')).toContain('__BUILD__')
     expect(readFileSync('deploy/chat.caddy.template', 'utf8')).toContain("manifest-src 'self'")
   })
+  it('registers the service worker before the first top-level await (afterwards `load` may already have fired)', () => {
+    const main = readFileSync('src/main.ts', 'utf8')
+    expect(main.indexOf('serviceWorker.register')).toBeGreaterThan(-1)
+    expect(main.indexOf('serviceWorker.register')).toBeLessThan(main.indexOf('await joinRoom('))
+  })
 })
