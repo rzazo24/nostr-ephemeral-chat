@@ -103,7 +103,13 @@ footer p { margin:2px 0; overflow-wrap:anywhere }
 #help h2 { margin:0; font-size:1.2rem }
 #help h3 { margin:18px 0 4px; font-size:1rem; color:var(--accent) }
 #help p { margin:6px 0; color:var(--text) }
-@media (max-width:520px) { #help { width:100%; max-width:none; height:100%; max-height:none; border-radius:0; border:none } }
+/* The help is a centred sheet, never full screen: in the installed app a full-screen dialog slid under the status bar and the
+   top was cut off. It keeps clear of the notch/home indicator and scrolls inside (the header stays visible). */
+#help { width:min(34rem, calc(100% - 24px)); font-size:.88rem; line-height:1.45; max-height:min(78dvh, calc(100dvh - max(env(safe-area-inset-top), 12px) - max(env(safe-area-inset-bottom), 12px) - 8px)) }
+#help h2 { font-size:1.05rem }
+#help h3 { margin-top:12px; font-size:.92rem }
+#help p { margin:5px 0 }
+@media (max-width:520px) { #help { width:calc(100% - 28px); padding:0 14px 12px } #help .help-head button { min-height:34px } }
 
 /* Links, typing, QR */
 #log li a { color:var(--accent); text-decoration:underline; text-underline-offset:2px }
@@ -157,9 +163,9 @@ footer p { margin:2px 0; overflow-wrap:anywhere }
   footer p:first-child { display: none }
 }
 
-/* Installed app (class set in main.ts): the home-indicator inset is mostly empty, so keep only a third of it, and drop the footer
+/* Installed app (class set in main.ts): the home-indicator inset is mostly empty, so keep about 60 % of it, and drop the footer
    (the relay and the source link live in the help dialog instead). */
-html.standalone body { padding-bottom: calc(env(safe-area-inset-bottom) * .35) }
+html.standalone body { padding-bottom: calc(env(safe-area-inset-bottom) * .6) }
 html.standalone footer { display: none }
-html.standalone main { padding-bottom: 8px }
+html.standalone main { padding-bottom: 10px }
 #help code { font-size:.9em; color:var(--muted); overflow-wrap:anywhere }
