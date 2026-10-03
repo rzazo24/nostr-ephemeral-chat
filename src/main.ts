@@ -24,6 +24,7 @@ if (isNew) {
 
 const log = $<HTMLUListElement>('log')
 const statusEl = $('status')
+const statusText = $('status-text')
 let state: 'connecting' | 'open' | 'closed' = 'connecting'
 let others: string[] = []
 
@@ -35,10 +36,11 @@ function render() {
   document.title = t('Ephemeral chat')
   document.querySelectorAll<HTMLElement>('[data-t]').forEach((el) => (el.textContent = t(el.dataset.t as never)))
   document.querySelectorAll<HTMLInputElement>('[data-t-placeholder]').forEach((el) => (el.placeholder = t(el.dataset.tPlaceholder as never)))
-  statusEl.textContent = t(STATUS[state])
+  statusText.textContent = t(STATUS[state])
   statusEl.dataset.state = state
-  $('online').textContent = others.length ? t('With: {names}', { names: others.join(', ') }) : t('Just you for now')
-  $('lang').textContent = getLang() === 'en' ? 'ES' : 'EN'
+  $('online-label').textContent = others.length ? t('In the room:') : t('Just you for now')
+  $('online').replaceChildren(...others.map((n) => Object.assign(document.createElement('li'), { textContent: n })))
+  document.querySelectorAll<HTMLElement>('[data-lang]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === getLang())))
   if (CUSTOM_RELAY) $('relay-link').title = t('Change relay')
 }
 
@@ -101,7 +103,7 @@ $('new').addEventListener('click', () => {
   setTimeout(() => location.reload(), 150)
 })
 
-$('lang').addEventListener('click', () => { setLang((getLang() === 'en' ? 'es' : 'en') as Lang); render() })
+document.querySelectorAll<HTMLElement>('[data-lang]').forEach((b) => b.addEventListener('click', () => { setLang(b.dataset.lang as Lang); render() }))
 
 if (CUSTOM_RELAY) {
   $('relay-link').addEventListener('click', (e) => {
