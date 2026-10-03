@@ -142,3 +142,17 @@ footer p { margin:2px 0; overflow-wrap:anywhere }
 .update span { flex:1 1 16rem }
 .update button { min-height:36px }
 @media (max-width: 520px) { .update span { flex-basis: 100% } .update button { flex: 1 } }
+
+/* Phones: give the message window most of the screen. The top card is compact (action buttons on one row), margins are tighter
+   and the long footer sentence is hidden (the help dialog says the same). 100dvh follows the browser bars as they show/hide. */
+@supports (height: 100dvh) { body { height: 100dvh } }
+@media (max-width: 520px) {
+  main { padding: 10px 12px 8px; gap: 8px }
+  #bar { padding: 8px 12px; gap: 4px 12px }
+  #bar .actions { grid-template-columns: repeat(auto-fit, minmax(76px, 1fr)); gap: 6px }
+  #bar .actions button { min-height: 38px; font-size: .82rem; padding: 0 4px }
+  #people summary { min-height: 32px }
+  #log { padding: 10px }
+  footer { padding-top: 6px }
+  footer p:first-child { display: none }
+}
