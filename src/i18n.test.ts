@@ -1,8 +1,10 @@
 import { readFileSync } from 'node:fs'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
-// i18n.ts touches `navigator`/`localStorage` only inside functions that run at import time, so stub them for Node.
-Object.assign(globalThis, { navigator: { language: 'en' }, localStorage: { getItem: () => null, setItem: () => {} } })
+// i18n.ts reads `navigator` and `localStorage` when it is imported. Newer Node versions define `navigator` as a read-only
+// global, so it has to be stubbed with vi.stubGlobal rather than assigned.
+vi.stubGlobal('navigator', { language: 'en' })
+vi.stubGlobal('localStorage', { getItem: () => null, setItem: () => {} })
 
 describe('translations', () => {
   it('every text marked in index.html has a Spanish translation, and Spanish never equals a mistyped key', async () => {
