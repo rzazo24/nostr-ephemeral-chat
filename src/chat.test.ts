@@ -31,7 +31,8 @@ describe('names', () => {
   it('room name is stable, readable and derived only from the topic', () => {
     const topic = 'a1b2c3d4e5f6'.padEnd(32, '0')
     expect(roomNameFromTopic(topic)).toBe(roomNameFromTopic(topic))
-    expect(roomNameFromTopic(topic)).toMatch(/^[a-z]+-[a-z]+-\d{1,2}$/)
+    expect(roomNameFromTopic(topic)).toMatch(/^[a-km-z2-9]{3}-[a-km-z2-9]{3}-[a-km-z2-9]{3}$/) // no l, o, 0, 1
+    expect(roomNameFromTopic(topic)).not.toMatch(/^[a-z]+-[a-z]+-\d+$/) // never looks like a nickname
     expect(roomNameFromTopic(topic)).not.toBe(roomNameFromTopic('ffff0000aa'.padEnd(32, '1')))
   })
   it('stable nickname per key', () => {

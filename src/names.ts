@@ -9,18 +9,21 @@ export function nickFromPubkey(pubkey: string): string {
   return `${ADJ[a % ADJ.length]}-${ANIMAL[b % ANIMAL.length]}-${n}`
 }
 
-const PLACE_ADJ = ['quiet', 'golden', 'misty', 'hidden', 'amber', 'silver', 'wild', 'gentle', 'northern', 'distant', 'velvet', 'crimson', 'coral', 'frozen', 'mossy', 'sunny']
-const PLACE = ['harbor', 'meadow', 'garden', 'valley', 'lagoon', 'summit', 'forest', 'island', 'canyon', 'orchard', 'bridge', 'lantern', 'cabin', 'beach', 'plaza', 'tower']
-
-/** A readable name for a room, derived from its public topic hash (never from the secret room id), so everybody in the room sees the same one. */
-export function roomNameFromTopic(topic: string): string {
-  const a = parseInt(topic.slice(0, 4), 16)
-  const b = parseInt(topic.slice(4, 8), 16)
-  const n = parseInt(topic.slice(8, 10), 16) % 100
-  return `${PLACE_ADJ[a % PLACE_ADJ.length]}-${PLACE[b % PLACE.length]}-${n}`
-}
-
 const ALPHABET = 'abcdefghijkmnpqrstuvwxyz23456789' // no look-alike characters (l, o, 0, 1)
+
+/**
+ * A readable name for a room, like "kfm-7xq-d4p": three groups of three characters, easy to read out loud. It is derived from the
+ * room's public topic hash (never from the secret room id), so everybody in the room sees the same one. It deliberately looks
+ * nothing like the word-based nicknames of people.
+ */
+export function roomNameFromTopic(topic: string): string {
+  let out = ''
+  for (let i = 0; i < 9; i++) {
+    out += ALPHABET[parseInt(topic.slice(i * 2, i * 2 + 2), 16) % ALPHABET.length]
+    if (i === 2 || i === 5) out += '-'
+  }
+  return out
+}
 /** Room id: 16 characters (80 bits). It is also the encryption secret, so it must not be guessable. */
 export function randomRoomId(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(16))
