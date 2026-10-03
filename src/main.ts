@@ -2,6 +2,8 @@ import './style.css'
 import { joinRoom } from './chat'
 import { getLang, setLang, t, type Lang } from './i18n'
 import { randomRoomId, validRoomId } from './names'
+import { Reactions, REACTIONS, type Reaction } from './reactions'
+import { EMOJIS } from './emojis'
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T
 
@@ -35,6 +37,7 @@ function render() {
   document.documentElement.lang = getLang()
   document.title = t('Ephemeral chat')
   document.querySelectorAll<HTMLElement>('[data-t]').forEach((el) => (el.textContent = t(el.dataset.t as never)))
+  document.querySelectorAll<HTMLElement>('[data-t-title]').forEach((el) => { el.title = t(el.dataset.tTitle as never); el.setAttribute('aria-label', el.title) })
   document.querySelectorAll<HTMLInputElement>('[data-t-placeholder]').forEach((el) => (el.placeholder = t(el.dataset.tPlaceholder as never)))
   statusText.textContent = t(STATUS[state])
   statusEl.dataset.state = state
@@ -44,7 +47,15 @@ function render() {
   if (CUSTOM_RELAY) $('relay-link').title = t('Change relay')
 }
 
-function addLine(cls: string, nick: string, text: string, at: number) {
+// Relay reasons come in English; the few we generate ourselves are translated.
+const KNOWN = ['connection lost', 'not connected', 'no answer from the relay', 'the relay rejected it'] as const
+const knownReason = (err: string) => ((KNOWN as readonly string[]).includes(err) ? t(err as (typeof KNOWN)[number]) : err)
+
+const reactions = new Reactions()
+const bubbles = new Map<string, HTMLElement>() // message id -> its reactions bar
+let me = ''
+
+function addLine(cls: string, nick: string, text: string, at: number, id?: string) {
   const li = document.createElement('li')
   li.className = cls
   const who = document.createElement('b')
@@ -54,21 +65,91 @@ function addLine(cls: string, nick: string, text: string, at: number) {
   const time = document.createElement('time')
   time.textContent = new Date(at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   li.append(who, body, time)
+  if (id) {
+    const bar = document.createElement('div')
+    bar.className = 'reactions'
+    li.append(bar)
+    bubbles.set(id, bar)
+    renderReactions(id)
+  }
   const stick = log.scrollHeight - log.scrollTop - log.clientHeight < 60
   log.append(li)
-  while (log.children.length > 500) log.firstElementChild!.remove()
+  while (log.children.length > 500) {
+    const first = log.firstElementChild as HTMLElement
+    for (const [k, v] of bubbles) if (first.contains(v)) bubbles.delete(k)
+    first.remove()
+  }
   if (stick) log.scrollTop = log.scrollHeight
 }
+
+/** Draws the chips of a message (one per emoji with its count) plus the "add reaction" button. */
+function renderReactions(id: string) {
+  const bar = bubbles.get(id)
+  if (!bar) return
+  const chips = reactions.summary(id, me).map((r) => {
+    const b = document.createElement('button')
+    b.type = 'button'
+    b.className = 'chip' + (r.mine ? ' mine' : '')
+    b.textContent = `${r.emoji} ${r.count}`
+    b.setAttribute('aria-pressed', String(r.mine))
+    b.addEventListener('click', () => toggleReaction(id, r.emoji, !r.mine))
+    return b
+  })
+  const add = document.createElement('button')
+  add.type = 'button'
+  add.className = 'chip add'
+  add.textContent = '☺+'
+  add.title = t('React')
+  add.setAttribute('aria-label', t('React'))
+  add.addEventListener('click', (e) => { e.stopPropagation(); openPalette(id, add) })
+  bar.replaceChildren(...chips, add)
+}
+
+async function toggleReaction(id: string, emoji: Reaction, on: boolean) {
+  closePalette()
+  // Optimistic: show it at once; the relay echo (same pubkey, same state) changes nothing.
+  if (reactions.apply(id, emoji, me, on)) renderReactions(id)
+  const err = await room.react(id, emoji, on)
+  if (err) {
+    if (reactions.apply(id, emoji, me, !on)) renderReactions(id)
+    note(t('Not sent: {reason}', { reason: knownReason(err) }))
+  }
+}
+
+// One shared palette (fixed position, so the scrolling chat does not clip it).
+const palette = $('palette')
+function openPalette(id: string, anchor: HTMLElement) {
+  const mine = new Set(reactions.summary(id, me).filter((r) => r.mine).map((r) => r.emoji))
+  palette.replaceChildren(...REACTIONS.map((emoji) => {
+    const b = document.createElement('button')
+    b.type = 'button'
+    b.className = 'chip' + (mine.has(emoji) ? ' mine' : '')
+    b.textContent = emoji
+    b.addEventListener('click', () => toggleReaction(id, emoji, !mine.has(emoji)))
+    return b
+  }))
+  palette.hidden = false
+  const r = anchor.getBoundingClientRect()
+  const w = palette.offsetWidth, h = palette.offsetHeight
+  palette.style.left = `${Math.max(8, Math.min(r.left, innerWidth - w - 8))}px`
+  palette.style.top = `${r.top - h - 6 < 8 ? r.bottom + 6 : r.top - h - 6}px`
+}
+function closePalette() { palette.hidden = true }
 // System notes are written in the language of the moment (they are not re-translated afterwards).
 const note = (text: string) => addLine('note', '', text, Date.now())
 
 const room = await joinRoom(roomId, relayUrl, {
   onStatus: (s) => { state = s; render() },
-  onMessage: (m) => addLine(m.mine ? 'mine' : 'other', m.nick, m.text, m.at),
+  onMessage: (m) => addLine(m.mine ? 'mine' : 'other', m.nick, m.text, m.at, m.id),
+  onReaction: (r) => {
+    // Our own echo changes nothing: it was already applied when we clicked.
+    if (reactions.apply(r.messageId, r.emoji, r.pubkey, r.on)) renderReactions(r.messageId)
+  },
   onRoster: (list) => { people = [...list].sort((a, b) => Number(b.mine) - Number(a.mine) || a.nick.localeCompare(b.nick)); render() },
 })
 
 $('me').textContent = room.nick
+me = room.pubkey
 people = [{ nick: room.nick, mine: true }]
 $('relay-link').textContent = relayUrl.replace(/^wss?:\/\//, '')
 render()
@@ -83,9 +164,7 @@ $<HTMLFormElement>('form').addEventListener('submit', async (e) => {
   input.value = ''
   const err = await room.say(text)
   if (err) {
-    // Relay reasons come in English; the few we generate ourselves are translated.
-    const known = ['connection lost', 'not connected', 'no answer from the relay', 'the relay rejected it'] as const
-    note(t('Not sent: {reason}', { reason: (known as readonly string[]).includes(err) ? t(err as (typeof known)[number]) : err }))
+    note(t('Not sent: {reason}', { reason: knownReason(err) }))
     input.value = text
   }
   input.focus()
@@ -118,6 +197,31 @@ if (CUSTOM_RELAY) {
 } else {
   $('relay-link').removeAttribute('href')
 }
+
+// Emoji picker for the message box (own panel, no library). Inserts at the cursor.
+const emojiPanel = $('emoji-panel'), emojiBtn = $<HTMLButtonElement>('emoji-btn'), textInput = $<HTMLInputElement>('text')
+emojiPanel.replaceChildren(...EMOJIS.map((emoji) => {
+  const b = document.createElement('button')
+  b.type = 'button'
+  b.textContent = emoji
+  b.setAttribute('aria-label', emoji)
+  b.addEventListener('click', () => {
+    const a = textInput.selectionStart ?? textInput.value.length, z = textInput.selectionEnd ?? a
+    if (textInput.value.length - (z - a) + emoji.length > textInput.maxLength) return
+    textInput.setRangeText(emoji, a, z, 'end')
+    textInput.focus()
+  })
+  return b
+}))
+emojiBtn.addEventListener('click', () => {
+  emojiPanel.hidden = !emojiPanel.hidden
+  emojiBtn.setAttribute('aria-expanded', String(!emojiPanel.hidden))
+  if (!emojiPanel.hidden) log.scrollTop = log.scrollHeight
+})
+
+document.addEventListener('click', (e) => { if (!palette.hidden && !palette.contains(e.target as Node)) closePalette() })
+addEventListener('keydown', (e) => { if (e.key === 'Escape') { closePalette(); $<HTMLDetailsElement>('people').open = false } })
+log.addEventListener('scroll', closePalette)
 
 // Close the people list when clicking anywhere else.
 document.addEventListener('click', (e) => { const d = $<HTMLDetailsElement>('people'); if (d.open && !d.contains(e.target as Node)) d.open = false })

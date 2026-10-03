@@ -1,20 +1,24 @@
 // The room protocol. Everything is an ephemeral event (20000–29999): the relay forwards it to whoever is subscribed and stores nothing.
 //   20001  message         content = text encrypted with the room key
 //   20002  heartbeat/join  content = encrypted "hello"; with a ["bye"] tag when leaving
-// Both carry ["t", <hash of the room>]. Only whoever has the room id (URL fragment) can read the content.
+//   20003  reaction        content = encrypted {"e":<emoji>,"on":true|false}; tag ["e", <message id>]
+// All carry ["t", <hash of the room>]. Only whoever has the room id (URL fragment) can read the content.
 import { finalizeEvent, generateSecretKey, getPublicKey, verifyEvent } from 'nostr-tools/pure'
 import type { Event } from 'nostr-tools'
 import { decrypt, encrypt, roomKey, topicOf } from './crypto'
 import { nickFromPubkey } from './names'
 import { connectRelay, type RelayClient } from './relay'
+import { isReaction, type Reaction } from './reactions'
 import { PRESENCE_EVERY_MS, Roster } from './roster'
 
 export const KIND_MESSAGE = 20001
 export const KIND_PRESENCE = 20002
+export const KIND_REACTION = 20003
 export const MAX_TEXT = 1000
 
 export interface ChatEvents {
   onMessage(m: { id: string; pubkey: string; nick: string; text: string; at: number; mine: boolean }): void
+  onReaction(r: { messageId: string; emoji: Reaction; pubkey: string; on: boolean }): void
   onRoster(nicks: { pubkey: string; nick: string; mine: boolean }[]): void
   onStatus(s: 'connecting' | 'open' | 'closed'): void
 }
@@ -38,11 +42,11 @@ export async function joinRoom(roomId: string, relayUrl: string, ev: ChatEvents)
 
   client = connectRelay({
     url: relayUrl,
-    filter: { kinds: [KIND_MESSAGE, KIND_PRESENCE], '#t': [topic], since: Math.floor(Date.now() / 1000) - 5 },
+    filter: { kinds: [KIND_MESSAGE, KIND_PRESENCE, KIND_REACTION], '#t': [topic], since: Math.floor(Date.now() / 1000) - 5 },
     onStatus: (s) => { ev.onStatus(s); if (s === 'open') hello() },
     onEvent: async (e: Event) => {
       if (seenIds.has(e.id) || !verifyEvent(e)) return
-      if (e.kind !== KIND_MESSAGE && e.kind !== KIND_PRESENCE) return
+      if (e.kind !== KIND_MESSAGE && e.kind !== KIND_PRESENCE && e.kind !== KIND_REACTION) return
       if (!e.tags.some((t) => t[0] === 't' && t[1] === topic)) return
       seenIds.add(e.id)
       const text = await decrypt(key, e.content)
@@ -58,6 +62,14 @@ export async function joinRoom(roomId: string, relayUrl: string, ev: ChatEvents)
       }
       roster.touch(e.pubkey)
       emitRoster()
+      if (e.kind === KIND_REACTION) {
+        const target = e.tags.find((t) => t[0] === 'e')?.[1]
+        let body: { e?: unknown; on?: unknown }
+        try { body = JSON.parse(text) } catch { return }
+        if (typeof target === 'string' && /^[0-9a-f]{64}$/.test(target) && isReaction(body.e) && typeof body.on === 'boolean')
+          ev.onReaction({ messageId: target, emoji: body.e, pubkey: e.pubkey, on: body.on })
+        return
+      }
       ev.onMessage({ id: e.id, pubkey: e.pubkey, nick: nickFromPubkey(e.pubkey), text: text.slice(0, MAX_TEXT), at: e.created_at * 1000, mine: e.pubkey === pk })
     },
   })
@@ -72,6 +84,11 @@ export async function joinRoom(roomId: string, relayUrl: string, ev: ChatEvents)
       const clean = text.trim().slice(0, MAX_TEXT)
       if (!clean) return null
       const r = await send(KIND_MESSAGE, clean)
+      return r.ok ? null : r.reason || 'the relay rejected it'
+    },
+    /** Adds or removes your reaction to a message. Returns the reason if the relay rejects it. */
+    async react(messageId: string, emoji: Reaction, on: boolean): Promise<string | null> {
+      const r = await send(KIND_REACTION, JSON.stringify({ e: emoji, on }), [['e', messageId]])
       return r.ok ? null : r.reason || 'the relay rejected it'
     },
     leave() {

@@ -47,3 +47,26 @@ describe('roster', () => {
     expect(r.online()).toEqual([])
   })
 })
+
+import { Reactions, isReaction } from './reactions'
+describe('reactions', () => {
+  it('adds, counts per emoji, toggles off and ignores repeats', () => {
+    const r = new Reactions()
+    expect(r.apply('m1', '👍', 'a', true)).toBe(true)
+    expect(r.apply('m1', '👍', 'a', true)).toBe(false) // repeated
+    expect(r.apply('m1', '👍', 'b', true)).toBe(true)
+    expect(r.apply('m1', '❤️', 'a', true)).toBe(true)
+    expect(r.summary('m1', 'a')).toEqual([{ emoji: '👍', count: 2, mine: true }, { emoji: '❤️', count: 1, mine: true }])
+    expect(r.summary('m1', 'z')[0].mine).toBe(false)
+    expect(r.apply('m1', '👍', 'a', false)).toBe(true)
+    expect(r.apply('m1', '👍', 'a', false)).toBe(false) // already gone
+    expect(r.summary('m1', 'a')).toEqual([{ emoji: '👍', count: 1, mine: false }, { emoji: '❤️', count: 1, mine: true }])
+    expect(r.apply('nope', '👍', 'a', false)).toBe(false)
+    expect(r.summary('nope', 'a')).toEqual([])
+  })
+  it('only accepts the closed list', () => {
+    expect(isReaction('👍')).toBe(true)
+    expect(isReaction('💩')).toBe(false)
+    expect(isReaction(5)).toBe(false)
+  })
+})

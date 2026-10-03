@@ -14,9 +14,12 @@ const until = async (cond: () => boolean, ms = 8000) => {
 }
 
 describe.skipIf(!RELAY)('two people in a room', () => {
+  const ids = new Map<string, string>()
+  const reacts: string[] = []
   const join = (room: string, got: string[], roster: string[][]) =>
     joinRoom(room, RELAY!, {
-      onMessage: (m) => got.push(`${m.nick}: ${m.text}`),
+      onMessage: (m) => { got.push(`${m.nick}: ${m.text}`); ids.set(m.text, m.id) },
+      onReaction: (r) => reacts.push(`${r.emoji}${r.on ? '+' : '-'}`),
       onRoster: (l) => roster.push(l.filter((p) => !p.mine).map((p) => p.nick)),
       onStatus: () => {},
     })
@@ -35,6 +38,13 @@ describe.skipIf(!RELAY)('two people in a room', () => {
     expect(gotA).toContain(`${a.nick}: hi from A`)
     expect(gotA).toContain(`${b.nick}: hi from B ñ 👋`)
     expect(gotC).toEqual([])
+    // reactions reach the other person (and the sender's own echo), with the right message id
+    const target = ids.get('hi from A')!
+    expect(await b.react(target, '👍', true)).toBeNull()
+    expect(await b.react(target, '👍', false)).toBeNull()
+    await until(() => reacts.filter((r) => r.startsWith('👍')).length >= 4)
+    expect(reacts).toContain('👍+')
+    expect(reacts).toContain('👍-')
     ;[a, b, c].forEach((x) => x.leave())
   }, 30000)
 })

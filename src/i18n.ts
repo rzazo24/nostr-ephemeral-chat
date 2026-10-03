@@ -8,6 +8,8 @@ const ES = {
   'connected': 'conectado',
   'offline, retrying…': 'sin conexión, reintentando…',
   'You:': 'Tú:',
+  'Emoji': 'Emojis',
+  'React': 'Reaccionar',
   'In the room: {n}': 'En la sala: {n}',
   '(you)': '(tú)',
   'Source code': 'Código fuente',

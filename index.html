@@ -38,7 +38,9 @@
 
     <ul id="log" class="card" aria-live="polite"></ul>
 
+    <div id="emoji-panel" class="card" hidden></div>
     <form id="form" autocomplete="off">
+      <button id="emoji-btn" type="button" class="emoji-btn" data-t-title="Emoji" aria-expanded="false" aria-controls="emoji-panel">😊</button>
       <input id="text" type="text" maxlength="1000" data-t-placeholder="Type a message…" enterkeyhint="send">
       <button type="submit" class="primary" data-t="Send"></button>
     </form>
@@ -49,6 +51,7 @@
         <a href="https://github.com/rzazo24/nostr-ephemeral-chat" rel="noopener noreferrer" data-t="Source code"></a></p>
     </footer>
   </main>
+  <div id="palette" class="card" role="menu" hidden></div>
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

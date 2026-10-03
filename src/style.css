@@ -56,3 +56,19 @@ footer { color:var(--muted); font-size:.8rem; border-top:1px solid var(--border)
 footer p { margin:2px 0; overflow-wrap:anywhere }
 @media (max-width:520px) { .actions { margin-left:0; width:100% } .actions button { flex:1 } }
 #log li.note time { display:none }
+
+/* Reactions and emoji picker */
+#log li .reactions { clear:both; display:flex; flex-wrap:wrap; gap:4px; margin-top:4px }
+.chip { min-height:28px; padding:0 8px; border-radius:999px; background:var(--bg); font-size:.85rem; line-height:1 }
+.chip.mine { border-color:var(--accent); background:var(--mine) }
+.chip.add { color:var(--muted); opacity:.55 }
+#log li:hover .chip.add, .chip.add:focus-visible { opacity:1 }
+@media (hover:none) { .chip.add { opacity:.8 } }
+#palette { position:fixed; z-index:10; display:flex; gap:4px; padding:6px; box-shadow:0 8px 24px rgba(0,0,0,.5) }
+#palette[hidden], #emoji-panel[hidden] { display:none }
+#palette .chip { min-height:40px; min-width:40px; font-size:1.3rem }
+#emoji-panel { display:grid; grid-template-columns:repeat(auto-fill, minmax(38px, 1fr)); gap:2px; max-height:28vh; overflow-y:auto; padding:6px }
+#emoji-panel button { min-height:38px; padding:0; border:none; background:none; font-size:1.3rem; border-radius:8px }
+#emoji-panel button:hover { background:var(--bg) }
+.emoji-btn { min-height:46px; padding:0 12px; font-size:1.2rem }
+@media (hover:none) and (pointer:coarse) { .emoji-btn, #emoji-panel { display:none } }
