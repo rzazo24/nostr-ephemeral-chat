@@ -3,6 +3,10 @@
   "private": true,
   "version": "0.1.0",
   "license": "MIT",
+  "description": "Ephemeral Nostr chat: a new random room and a new identity on every visit.",
+  "homepage": "https://chat.hivescope.xyz",
+  "repository": "github:rzazo24/nostr-ephemeral-chat",
+  "keywords": ["nostr", "chat", "ephemeral", "privacy", "websocket"],
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -2,6 +2,8 @@
 
 *Read in English: [README.md](README.md)*
 
+**En vivo: https://chat.hivescope.xyz**
+
 Un chat web diminuto sobre un relé de Nostr. Cada vez que lo abres tienes **una sala aleatoria nueva** y **una identidad nueva**. Compartes el enlace y quien lo abra está en la misma sala. No se guarda nada: cierras la pestaña y desaparece.
 
 Se conecta por defecto a `wss://relay.hivescope.xyz` (vale cualquier relé que acepte eventos efímeros).
