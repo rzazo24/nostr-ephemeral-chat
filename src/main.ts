@@ -198,6 +198,12 @@ if (CUSTOM_RELAY) {
   $('relay-link').removeAttribute('href')
 }
 
+// Help dialog (native <dialog>: Escape closes it; a click on the backdrop does too).
+const help = $<HTMLDialogElement>('help')
+$('help-btn').addEventListener('click', () => help.showModal())
+$('help-close').addEventListener('click', () => help.close())
+help.addEventListener('click', (e) => { if (e.target === help) help.close() })
+
 // Emoji picker for the message box (own panel, no library). Inserts at the cursor.
 const emojiPanel = $('emoji-panel'), emojiBtn = $<HTMLButtonElement>('emoji-btn'), textInput = $<HTMLInputElement>('text')
 emojiPanel.replaceChildren(...EMOJIS.map((emoji) => {

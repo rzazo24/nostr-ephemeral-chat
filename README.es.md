@@ -21,7 +21,7 @@ Se conecta por defecto a `wss://relay.hivescope.xyz` (vale cualquier relé que a
 - **Privacidad**: del id de sala se deriva (HKDF) una clave AES-GCM con la que se cifra el contenido, y la etiqueta de sala que se publica en el relé es un hash SHA-256 del id. Quien administra el relé ve quién habla, cuándo y cuánto, pero no qué, y no puede entrar en una sala sin el enlace. **No** sustituye a un protocolo de cifrado extremo a extremo revisado: cualquiera con el enlace puede leer y escribir, y no hay secreto hacia delante.
 - **Relé**: la versión desplegada va fijada a un relé (`VITE_RELAY`, por defecto `wss://relay.hivescope.xyz`), lo que permite una CSP estricta. En desarrollo, o compilando con `VITE_ALLOW_CUSTOM_RELAY=1`, puedes elegir otro con `?relay=wss://…` o desde el pie de página.
 - **Reacciones y emojis**: pulsa ☺+ bajo un mensaje para reaccionar; vuelve a pulsar tu reacción para quitarla. Quien llega tarde no ve las reacciones anteriores (no se guarda nada). En el PC hay un selector de emojis junto a la caja de texto; los dispositivos táctiles usan su propio teclado.
-- **Idiomas**: inglés y español, con un botón en la cabecera. Por defecto, el del navegador.
+- **Idiomas y ayuda**: inglés y español, con un botón en la cabecera; el botón ? abre una ayuda. Por defecto, el del navegador.
 
 ## Desarrollo
 
