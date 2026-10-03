@@ -72,3 +72,24 @@ footer p { margin:2px 0; overflow-wrap:anywhere }
 #emoji-panel button:hover { background:var(--bg) }
 .emoji-btn { min-height:46px; padding:0 12px; font-size:1.2rem }
 @media (hover:none) and (pointer:coarse) { .emoji-btn, #emoji-panel { display:none } }
+
+/* Larger screens: a wider column and bigger type/controls (rem units scale with the root size) */
+@media (min-width: 900px) {
+  html { font-size: 18px }
+  body { font-size: 1rem }
+  main { max-width: 1040px; padding: 24px 24px 14px; gap: 16px }
+  .icon { width: 56px; height: 56px }
+  h1 { font-size: 1.5rem }
+  button { min-height: 44px; padding: 0 18px }
+  .lang button { min-height: 36px }
+  #bar { padding: 12px 18px }
+  #people summary { min-height: 38px }
+  #log { padding: 18px }
+  #log li { max-width: min(42rem, 80%); padding: 8px 14px }
+  .chip { min-height: 32px }
+  #palette .chip { min-height: 46px; min-width: 46px; font-size: 1.4rem }
+  #emoji-panel { grid-template-columns: repeat(auto-fill, minmax(46px, 1fr)); max-height: 30vh }
+  #emoji-panel button { min-height: 44px; font-size: 1.5rem }
+  #text { min-height: 52px; padding: 0 16px; font-size: 1rem }
+  #form button, .emoji-btn { min-height: 52px }
+}
