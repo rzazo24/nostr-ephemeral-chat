@@ -52,6 +52,7 @@ export const ES = {
   "A new version is available. Reloading keeps the room, but you get a new identity.": "Hay una versión nueva. Al recargar sigues en la sala, pero con una identidad nueva.",
   "Reload": "Recargar",
   "Later": "Más tarde",
+  'About': 'Acerca de',
   'Emoji': 'Emojis',
   'React': 'Reaccionar',
   'In the room: {n}': 'En la sala: {n}',

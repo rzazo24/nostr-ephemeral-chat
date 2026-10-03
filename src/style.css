@@ -149,10 +149,17 @@ footer p { margin:2px 0; overflow-wrap:anywhere }
 @media (max-width: 520px) {
   main { padding: 10px 12px 8px; gap: 8px }
   #bar { padding: 8px 12px; gap: 4px 12px }
-  #bar .actions { grid-template-columns: repeat(auto-fit, minmax(76px, 1fr)); gap: 6px }
-  #bar .actions button { min-height: 38px; font-size: .82rem; padding: 0 4px }
+  #bar .actions { display: flex; flex-wrap: wrap; gap: 6px }
+  #bar .actions button { flex: 1 1 auto; min-height: 38px; font-size: .82rem; padding: 0 10px; white-space: nowrap }
   #people summary { min-height: 32px }
   #log { padding: 10px }
   footer { padding-top: 6px }
   footer p:first-child { display: none }
 }
+
+/* Installed app (class set in main.ts): the home-indicator inset is mostly empty, so keep only a third of it, and drop the footer
+   (the relay and the source link live in the help dialog instead). */
+html.standalone body { padding-bottom: calc(env(safe-area-inset-bottom) * .35) }
+html.standalone footer { display: none }
+html.standalone main { padding-bottom: 8px }
+#help code { font-size:.9em; color:var(--muted); overflow-wrap:anywhere }

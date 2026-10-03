@@ -67,6 +67,9 @@ addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEven
 addEventListener('appinstalled', () => { installEvent = undefined; $('install').hidden = true })
 $('install').addEventListener('click', async () => { await installEvent?.prompt(); installEvent = undefined; $('install').hidden = true })
 
+// Running as an installed app (home-screen icon): the CSS drops the footer and trims the bottom margin.
+if (matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone) document.documentElement.classList.add('standalone')
+
 const log = $<HTMLUListElement>('log')
 const statusEl = $('status')
 const statusText = $('status-text')
@@ -227,6 +230,7 @@ roomName = room.roomName
 $('room-name').textContent = `#${roomName}`
 people = [{ nick: room.nick, mine: true }]
 $('relay-link').textContent = relayUrl.replace(/^wss?:\/\//, '')
+$('help-relay').textContent = relayUrl
 render()
 note(isNew ? t('New room. Copy the link and send it to whoever you like.') : t('You joined a room. You will only see what is written from now on.'))
 note(t('Whoever joins later will not see what came before: nothing is stored.'))
