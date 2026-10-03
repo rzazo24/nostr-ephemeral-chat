@@ -35,7 +35,7 @@ const STATUS = { connecting: 'connecting…', open: 'connected', closed: 'offlin
 /** (Re)writes every text that depends on the language. */
 function render() {
   document.documentElement.lang = getLang()
-  document.title = roomName ? `${roomName} · ${t('Ephemeral chat')}` : t('Ephemeral chat')
+  document.title = roomName ? `#${roomName} · ${t('Ephemeral chat')}` : t('Ephemeral chat')
   document.querySelectorAll<HTMLElement>('[data-t]').forEach((el) => (el.textContent = t(el.dataset.t as never)))
   document.querySelectorAll<HTMLElement>('[data-t-title]').forEach((el) => { el.title = t(el.dataset.tTitle as never); el.setAttribute('aria-label', el.title) })
   document.querySelectorAll<HTMLInputElement>('[data-t-placeholder]').forEach((el) => (el.placeholder = t(el.dataset.tPlaceholder as never)))
@@ -152,7 +152,7 @@ const room = await joinRoom(roomId, relayUrl, {
 $('me').textContent = room.nick
 me = room.pubkey
 roomName = room.roomName
-$('room-name').textContent = roomName
+$('room-name').textContent = `#${roomName}`
 people = [{ nick: room.nick, mine: true }]
 $('relay-link').textContent = relayUrl.replace(/^wss?:\/\//, '')
 render()
