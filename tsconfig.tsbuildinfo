@@ -1,0 +1,1 @@
+{"root":["./src/chat.test.ts","./src/chat.ts","./src/crypto.ts","./src/e2e.test.ts","./src/i18n.ts","./src/main.ts","./src/names.ts","./src/relay.ts","./src/roster.ts"],"version":"6.0.3"}

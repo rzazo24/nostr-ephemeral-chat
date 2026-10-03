@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="referrer" content="no-referrer">
+  <title>Ephemeral chat</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E💬%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <header>
+    <h1>💬 <span data-t="Ephemeral chat"></span></h1>
+    <span>
+      <span id="status" role="status"></span>
+      <button id="lang" type="button" aria-label="Language">ES</button>
+    </span>
+  </header>
+  <section id="bar">
+    <span><span data-t="You:"></span> <b id="me"></b></span>
+    <span id="online"></span>
+    <button id="share" type="button" data-t="Copy link"></button>
+    <button id="new" type="button" data-t="New room"></button>
+  </section>
+  <ul id="log" aria-live="polite"></ul>
+  <form id="form" autocomplete="off">
+    <input id="text" type="text" maxlength="1000" data-t-placeholder="Type a message…" enterkeyhint="send">
+    <button type="submit" data-t="Send"></button>
+  </form>
+  <footer>
+    <span data-t="No history: messages are only seen by whoever is in the room right now. Every visit creates a new identity."></span>
+    <span data-t="Relay:"></span> <a id="relay-link" href="#"></a>
+  </footer>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
