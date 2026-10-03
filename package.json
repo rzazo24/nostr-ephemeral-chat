@@ -18,7 +18,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "test": "vitest run",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "screenshots": "node scripts/screenshots.mjs"
   },
   "dependencies": {
     "nostr-tools": "^2.25.2",

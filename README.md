@@ -53,6 +53,17 @@ It needs a DNS record for the chat domain pointing at the server, and the relay 
 
 The icons in `public/icons/` were rendered from `public/icon.svg` and `icons-src/full-bleed.svg` (the full-bleed version used for the maskable and Apple icons).
 
+### Screenshots
+
+`docs/screenshot*.png` are generated from the live site (two real browser tabs talking through the relay). To refresh them after changing the UI:
+
+```bash
+npm i --no-save playwright && npx playwright install chromium   # once; Playwright is not a project dependency
+npm run screenshots                                             # or: -- --url=http://localhost:4173/ --lang=en --out=/tmp/shots --pause=10
+```
+
+It takes about four minutes: relays rate-limit per IP, so the script waits between scenes and aborts if a message gets rejected.
+
 ## Layout
 
 | File | What it does |
@@ -68,6 +79,7 @@ The icons in `public/icons/` were rendered from `public/icon.svg` and `icons-src
 | `src/notify.ts` | Bell: sound and system notifications |
 | `src/qr.ts` | QR code of the room link |
 | `public/sw.js`, `public/manifest.webmanifest` | PWA: service worker (per-build cache name stamped by `vite.config.ts`) and manifest |
+| `scripts/screenshots.mjs` | Regenerates the README screenshots |
 | `src/names.ts` | Random room ids and nicknames |
 | `src/i18n.ts` | English / Spanish texts |
 | `src/main.ts` | UI |

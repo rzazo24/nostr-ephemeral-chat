@@ -53,6 +53,17 @@ Necesita un registro DNS del dominio del chat hacia el servidor, y que el Caddyf
 
 Los iconos de `public/icons/` se generaron a partir de `public/icon.svg` y `icons-src/full-bleed.svg` (la versión a sangre usada en los iconos maskable y de Apple).
 
+### Capturas
+
+`docs/screenshot*.png` se generan desde la web publicada (dos pestañas reales hablando por el relé). Para renovarlas tras cambiar la interfaz:
+
+```bash
+npm i --no-save playwright && npx playwright install chromium   # una vez; Playwright no es una dependencia del proyecto
+npm run screenshots                                             # o: -- --url=http://localhost:4173/ --lang=es --out=/tmp/capturas --pause=10
+```
+
+Tarda unos cuatro minutos: los relés limitan por IP, así que el script espera entre escenas y aborta si algún mensaje es rechazado.
+
 ## Estructura
 
 | Archivo | Qué hace |
@@ -68,6 +79,7 @@ Los iconos de `public/icons/` se generaron a partir de `public/icon.svg` y `icon
 | `src/notify.ts` | Campana: sonido y notificaciones del sistema |
 | `src/qr.ts` | Código QR del enlace de la sala |
 | `public/sw.js`, `public/manifest.webmanifest` | PWA: service worker (con el nombre de caché sellado por `vite.config.ts` en cada build) y manifiesto |
+| `scripts/screenshots.mjs` | Regenera las capturas del README |
 | `src/names.ts` | Ids de sala y apodos aleatorios |
 | `src/i18n.ts` | Textos en inglés y español |
 | `src/main.ts` | Interfaz |
