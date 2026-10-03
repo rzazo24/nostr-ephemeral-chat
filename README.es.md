@@ -24,7 +24,7 @@ Se conecta por defecto a `wss://relay.hivescope.xyz` (vale cualquier relé que a
 - **Notificaciones**: el título de la pestaña siempre muestra los mensajes sin leer. La campana (desactivada por defecto) añade un sonido y, si el navegador lo permite, una notificación del sistema; las notificaciones nunca llevan el texto del mensaje.
 - **Compartir**: copiar el enlace, el menú de compartir del sistema (donde exista) o un código QR del enlace de la sala.
 - Los **enlaces** de los mensajes se pueden pulsar (solo http/https, con `noopener` y sin referrer); y encima de la caja de texto se ve **«X está escribiendo…»**.
-- **App instalable (PWA)**: manifiesto, iconos y un service worker que guarda la app en caché, así que abre sin conexión (el chat en sí necesita el relé). iPhone: Compartir → Añadir a pantalla de inicio; Android/escritorio: el botón «Instalar app». En el móvil las notificaciones solo funcionan en la app instalada y mientras siga en segundo plano: no hay servidor de push, así que nada llega a una app cerrada.
+- **App instalable (PWA)**: manifiesto, iconos y un service worker que guarda la app en caché, así que abre sin conexión (el chat en sí necesita el relé). Una versión nueva nunca se activa sola: la app muestra una barra («Recargar» / «Más tarde») y busca actualizaciones cada 30 minutos y cada vez que vuelves a la pestaña. iPhone: Compartir → Añadir a pantalla de inicio; Android/escritorio: el botón «Instalar app». En el móvil las notificaciones solo funcionan en la app instalada y mientras siga en segundo plano: no hay servidor de push, así que nada llega a una app cerrada.
 - **Idiomas y ayuda**: inglés y español, con un botón en la cabecera; el botón ? abre una ayuda. Por defecto, el del navegador.
 
 ## Desarrollo
