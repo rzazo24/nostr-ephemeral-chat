@@ -18,7 +18,7 @@ h1 { margin:0; font-size:1.25rem; line-height:1.2 }
 .status[data-state=closed] .dot { background:var(--red) }
 
 button { font:inherit; cursor:pointer; color:var(--text); background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:0 14px; min-height:40px }
-button:hover { border-color:var(--accent) }
+@media (hover:hover) { button:hover { border-color:var(--accent) } } /* no sticky hover after a tap on touch screens */
 button.primary { background:var(--accent); border-color:var(--accent); color:var(--bg); font-weight:700 }
 .lang { display:flex; gap:4px }
 .lang button { min-height:32px; padding:0 10px; font-size:.85rem; color:var(--muted) }
@@ -118,7 +118,8 @@ footer p { margin:2px 0; overflow-wrap:anywhere }
 #bell[aria-pressed=true] .bell-on { display:inline }
 #bell .bell-off { display:inline }
 #bell[aria-pressed=true] .bell-off { display:none }
-#bell:hover { color:var(--accent) }
+/* hovering must not look like "on": lighten only; the accent colour is reserved for the active state (keep this rule last) */
+@media (hover:hover) { #bell:hover { color:var(--text); border-color:var(--muted) } }
 #bell[aria-pressed=true] { border-color:var(--accent); color:var(--accent) }
 
 /* Phones: keep the header on one line and the action buttons in a tidy 2-column grid */
