@@ -6,6 +6,8 @@
 
 Ephemeral Nostr chat: a new random room and a new identity on every visit. Messages are encrypted with a key derived from the room link.
 
+[![Ephemeral chat on a computer and on a phone](docs/screenshot.png)](https://chat.hivescope.xyz)
+
 A tiny web chat on top of a Nostr relay. Every time you open it, you get **a brand-new random room** and **a brand-new identity**. Share the link and whoever opens it is in the same room. Nothing is stored: close the tab and it is gone.
 
 It connects to `wss://relay.hivescope.xyz` by default (any relay that accepts ephemeral events works).
