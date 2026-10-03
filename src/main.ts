@@ -26,7 +26,7 @@ const log = $<HTMLUListElement>('log')
 const statusEl = $('status')
 const statusText = $('status-text')
 let state: 'connecting' | 'open' | 'closed' = 'connecting'
-let others: string[] = []
+let people: { nick: string; mine: boolean }[] = []
 
 const STATUS = { connecting: 'connecting…', open: 'connected', closed: 'offline, retrying…' } as const
 
@@ -38,8 +38,8 @@ function render() {
   document.querySelectorAll<HTMLInputElement>('[data-t-placeholder]').forEach((el) => (el.placeholder = t(el.dataset.tPlaceholder as never)))
   statusText.textContent = t(STATUS[state])
   statusEl.dataset.state = state
-  $('online-label').textContent = others.length ? t('In the room:') : t('Just you for now')
-  $('online').replaceChildren(...others.map((n) => Object.assign(document.createElement('li'), { textContent: n })))
+  $('people-summary').textContent = t('In the room: {n}', { n: String(people.length) })
+  $('online').replaceChildren(...people.map((p) => Object.assign(document.createElement('li'), { textContent: p.mine ? `${p.nick} ${t('(you)')}` : p.nick, className: p.mine ? 'me' : '' })))
   document.querySelectorAll<HTMLElement>('[data-lang]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === getLang())))
   if (CUSTOM_RELAY) $('relay-link').title = t('Change relay')
 }
@@ -65,10 +65,11 @@ const note = (text: string) => addLine('note', '', text, Date.now())
 const room = await joinRoom(roomId, relayUrl, {
   onStatus: (s) => { state = s; render() },
   onMessage: (m) => addLine(m.mine ? 'mine' : 'other', m.nick, m.text, m.at),
-  onRoster: (list) => { others = list.filter((p) => !p.mine).map((p) => p.nick); render() },
+  onRoster: (list) => { people = [...list].sort((a, b) => Number(b.mine) - Number(a.mine) || a.nick.localeCompare(b.nick)); render() },
 })
 
 $('me').textContent = room.nick
+people = [{ nick: room.nick, mine: true }]
 $('relay-link').textContent = relayUrl.replace(/^wss?:\/\//, '')
 render()
 note(isNew ? t('New room. Copy the link and send it to whoever you like.') : t('You joined a room. You will only see what is written from now on.'))
@@ -117,5 +118,8 @@ if (CUSTOM_RELAY) {
 } else {
   $('relay-link').removeAttribute('href')
 }
+
+// Close the people list when clicking anywhere else.
+document.addEventListener('click', (e) => { const d = $<HTMLDetailsElement>('people'); if (d.open && !d.contains(e.target as Node)) d.open = false })
 
 addEventListener('pagehide', () => room.leave())

@@ -30,8 +30,14 @@ button.primary { background:var(--accent); border-color:var(--accent); color:var
 .who b { color:var(--accent) }
 .muted { color:var(--muted) }
 .actions { margin-left:auto; display:flex; gap:8px }
-.chips { list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:6px }
-.chips li { padding:1px 10px; border:1px solid var(--border); border-radius:999px; background:var(--bg); font-size:.85rem }
+#people { position:relative }
+#people summary { cursor:pointer; list-style:none; padding:0 12px; min-height:34px; display:flex; align-items:center; gap:6px; border:1px solid var(--border); border-radius:999px; background:var(--bg); font-size:.9rem; user-select:none }
+#people summary::-webkit-details-marker { display:none }
+#people summary::after { content:'▾'; color:var(--muted) }
+#people[open] summary { border-color:var(--accent) }
+#online { position:absolute; z-index:5; top:calc(100% + 6px); left:0; min-width:14rem; max-height:50vh; overflow-y:auto; margin:0; padding:6px; list-style:none; background:var(--panel); border:1px solid var(--border); border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.5) }
+#online li { padding:6px 10px; border-radius:8px; overflow-wrap:anywhere }
+#online li.me { color:var(--accent) }
 
 #log { flex:1; min-height:0; overflow-y:auto; list-style:none; margin:0; padding:14px; display:flex; flex-direction:column; gap:8px }
 #log li { max-width:min(34rem, 85%); padding:6px 12px; border-radius:12px; background:var(--bg); border:1px solid var(--border); overflow-wrap:anywhere }
