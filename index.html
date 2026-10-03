@@ -7,6 +7,12 @@
   <meta name="theme-color" content="#0B0F16">
   <title>Ephemeral chat</title>
   <link rel="icon" type="image/svg+xml" href="/icon.svg">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Chat">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
   <main>
@@ -39,6 +45,7 @@
         <button id="share" type="button" data-t="Copy link"></button>
         <button id="share-native" type="button" data-t="Share" hidden></button>
         <button id="qr-btn" type="button" data-t="QR code"></button>
+        <button id="install" type="button" data-t="Install app" hidden></button>
         <button id="new" type="button" data-t="New room"></button>
       </div>
     </section>
@@ -81,6 +88,8 @@
     <p data-t="The bell turns on a sound and, if your browser allows it, a notification when a message arrives while you are on another tab. Notifications never include the message text. The tab title always shows how many messages you have not seen."></p>
     <p data-t="Links in messages are clickable and open in a new tab. Check where they lead before opening them."></p>
     <p data-t="You can see when someone is typing just above the message box."></p>
+    <h3 data-t="Install as an app"></h3>
+    <p data-t="On iPhone: open the chat in Safari, tap Share and then “Add to Home Screen”. On Android and desktop Chrome or Edge, use the “Install app” button or the browser’s install option. Each time you open the app you get a new room and a new identity. Notifications on a phone only work in the installed app, and only while it is still running in the background: nothing is pushed to a closed app."></p>
     <h3 data-t="If something fails"></h3>
     <p data-t="If the status shows “offline”, the chat reconnects by itself. Messages written meanwhile are not sent."></p>
     <p data-t="The relay limits how fast you can send. If a message is rejected, the reason appears in the chat; wait a few seconds and try again."></p>

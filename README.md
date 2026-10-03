@@ -24,6 +24,7 @@ It connects to `wss://relay.hivescope.xyz` by default (any relay that accepts ep
 - **Notifications**: the tab title always shows the unread count. The bell (off by default) adds a sound and, if the browser allows it, a system notification; notifications never contain the message text.
 - **Sharing**: copy the link, the system share sheet (where available) or a QR code of the room link.
 - **Links** in messages are clickable (http/https only, `noopener`, no referrer); **"X is typing…"** is shown above the message box.
+- **Installable app (PWA)**: manifest, icons and a service worker that caches the app shell, so it opens without a connection (the chat itself needs the relay). iPhone: Share → Add to Home Screen; Android/desktop: the "Install app" button. Phone notifications only work in the installed app and only while it still runs in the background: there is no push server, so nothing reaches a closed app.
 - **Languages and help**: English and Spanish, switch in the header; the ? button opens a help dialog. Defaults to the browser language.
 
 ## Develop
@@ -48,6 +49,8 @@ The build is a static site: serve `dist/` from anywhere over HTTPS (needed for t
 
 It needs a DNS record for the chat domain pointing at the server, and the relay repo's Caddyfile to `import /etc/caddy/sites/*.caddy` with `./sites` mounted (already the case in recent versions).
 
+The icons in `public/icons/` were rendered from `public/icon.svg` and `icons-src/full-bleed.svg` (the full-bleed version used for the maskable and Apple icons).
+
 ## Layout
 
 | File | What it does |
@@ -62,6 +65,7 @@ It needs a DNS record for the chat domain pointing at the server, and the relay 
 | `src/typing.ts` | Who is typing right now |
 | `src/notify.ts` | Bell: sound and system notifications |
 | `src/qr.ts` | QR code of the room link |
+| `public/sw.js`, `public/manifest.webmanifest` | PWA: service worker (per-build cache name stamped by `vite.config.ts`) and manifest |
 | `src/names.ts` | Random room ids and nicknames |
 | `src/i18n.ts` | English / Spanish texts |
 | `src/main.ts` | UI |

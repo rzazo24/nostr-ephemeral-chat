@@ -35,7 +35,10 @@ function beep() {
 /** Sound + notification. The notification never carries the message text (it would show on lock screens). */
 export function ping(title: string, body: string) {
   beep()
-  if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-    try { new Notification(title, { body, tag: 'chat-message', silent: true }) } catch { /* some mobile browsers refuse */ }
-  }
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
+  const opts = { body, tag: 'chat-message', silent: true }
+  // Phones only allow notifications shown by a service worker (the constructor throws); desktop browsers allow both.
+  const viaWorker = navigator.serviceWorker?.ready.then((reg) => reg.showNotification(title, opts))
+  if (viaWorker) viaWorker.catch(() => { try { new Notification(title, opts) } catch { /* nothing else to try */ } })
+  else { try { new Notification(title, opts) } catch { /* not allowed here */ } }
 }

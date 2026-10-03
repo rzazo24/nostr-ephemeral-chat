@@ -24,6 +24,7 @@ Se conecta por defecto a `wss://relay.hivescope.xyz` (vale cualquier relé que a
 - **Notificaciones**: el título de la pestaña siempre muestra los mensajes sin leer. La campana (desactivada por defecto) añade un sonido y, si el navegador lo permite, una notificación del sistema; las notificaciones nunca llevan el texto del mensaje.
 - **Compartir**: copiar el enlace, el menú de compartir del sistema (donde exista) o un código QR del enlace de la sala.
 - Los **enlaces** de los mensajes se pueden pulsar (solo http/https, con `noopener` y sin referrer); y encima de la caja de texto se ve **«X está escribiendo…»**.
+- **App instalable (PWA)**: manifiesto, iconos y un service worker que guarda la app en caché, así que abre sin conexión (el chat en sí necesita el relé). iPhone: Compartir → Añadir a pantalla de inicio; Android/escritorio: el botón «Instalar app». En el móvil las notificaciones solo funcionan en la app instalada y mientras siga en segundo plano: no hay servidor de push, así que nada llega a una app cerrada.
 - **Idiomas y ayuda**: inglés y español, con un botón en la cabecera; el botón ? abre una ayuda. Por defecto, el del navegador.
 
 ## Desarrollo
@@ -48,6 +49,8 @@ La compilación es un sitio estático: sirve `dist/` desde donde quieras, con HT
 
 Necesita un registro DNS del dominio del chat hacia el servidor, y que el Caddyfile del repo del relé haga `import /etc/caddy/sites/*.caddy` con `./sites` montado (ya ocurre en las versiones recientes).
 
+Los iconos de `public/icons/` se generaron a partir de `public/icon.svg` y `icons-src/full-bleed.svg` (la versión a sangre usada en los iconos maskable y de Apple).
+
 ## Estructura
 
 | Archivo | Qué hace |
@@ -62,6 +65,7 @@ Necesita un registro DNS del dominio del chat hacia el servidor, y que el Caddyf
 | `src/typing.ts` | Quién está escribiendo ahora |
 | `src/notify.ts` | Campana: sonido y notificaciones del sistema |
 | `src/qr.ts` | Código QR del enlace de la sala |
+| `public/sw.js`, `public/manifest.webmanifest` | PWA: service worker (con el nombre de caché sellado por `vite.config.ts` en cada build) y manifiesto |
 | `src/names.ts` | Ids de sala y apodos aleatorios |
 | `src/i18n.ts` | Textos en inglés y español |
 | `src/main.ts` | Interfaz |

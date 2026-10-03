@@ -6,12 +6,14 @@ __DOMAIN__ {
 		X-Content-Type-Options nosniff
 		Referrer-Policy no-referrer
 		Strict-Transport-Security "max-age=31536000"
-		Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src __RELAY__; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+		Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src __RELAY__; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
 	}
 	# hashed assets never change; the page itself must always be revalidated
 	@assets path /assets/*
 	header @assets Cache-Control "public, max-age=31536000, immutable"
-	@page not path /assets/*
+	@page not path /assets/* /icons/*
 	header @page Cache-Control "no-cache"
+	@icons path /icons/*
+	header @icons Cache-Control "public, max-age=86400"
 	file_server
 }
