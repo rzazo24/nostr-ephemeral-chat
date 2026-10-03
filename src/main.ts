@@ -82,7 +82,6 @@ function render() {
   document.documentElement.lang = getLang()
   const base = roomName ? `#${roomName} · ${t('Ephemeral chat')}` : t('Ephemeral chat')
   document.title = unread ? `(${unread}) ${base}` : base
-  $('bell').textContent = bell ? '🔔' : '🔕'
   $('bell').setAttribute('aria-pressed', String(bell))
   document.querySelectorAll<HTMLElement>('[data-t]').forEach((el) => (el.textContent = t(el.dataset.t as never)))
   document.querySelectorAll<HTMLElement>('[data-t-title]').forEach((el) => { el.title = t(el.dataset.tTitle as never); el.setAttribute('aria-label', el.title) })

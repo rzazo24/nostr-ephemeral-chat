@@ -113,7 +113,12 @@ footer p { margin:2px 0; overflow-wrap:anywhere }
 #qr .help-head { position:static; display:flex; justify-content:space-between; align-items:center; padding:14px 0 8px; background:none }
 #qr h2 { margin:0; font-size:1.2rem }
 #qr img { display:block; margin:8px auto; width:min(100%, 320px); height:auto; image-rendering:pixelated; border-radius:8px }
-#bell { font-size:.9rem }
+#bell { display:inline-flex; align-items:center; justify-content:center }
+#bell .bell-on, #bell[aria-pressed=false] .bell-on { display:none }
+#bell[aria-pressed=true] .bell-on { display:inline }
+#bell .bell-off { display:inline }
+#bell[aria-pressed=true] .bell-off { display:none }
+#bell:hover { color:var(--accent) }
 #bell[aria-pressed=true] { border-color:var(--accent); color:var(--accent) }
 
 /* Phones: keep the header on one line and the action buttons in a tidy 2-column grid */
