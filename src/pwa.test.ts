@@ -36,4 +36,11 @@ describe('PWA files', () => {
     expect(main.indexOf('serviceWorker.register')).toBeGreaterThan(-1)
     expect(main.indexOf('serviceWorker.register')).toBeLessThan(main.indexOf('await joinRoom('))
   })
+  it('the service worker gets its own CSP that lets it fetch same-origin files (it runs under the CSP of its own script)', () => {
+    const caddy = readFileSync('deploy/chat.caddy.template', 'utf8')
+    const swPolicy = caddy.split('\n').find((l) => l.includes('header @sw Content-Security-Policy'))
+    expect(swPolicy).toContain("connect-src 'self'")
+    // and the page policy must not apply to it
+    expect(caddy).toContain('@notsw not path /sw.js')
+  })
 })

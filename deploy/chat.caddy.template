@@ -6,8 +6,14 @@ __DOMAIN__ {
 		X-Content-Type-Options nosniff
 		Referrer-Policy no-referrer
 		Strict-Transport-Security "max-age=31536000"
-		Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src __RELAY__; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
 	}
+	# The page: it may only talk to the relay. (CSP is a header of the response, and a service worker runs under the CSP of
+	# its own script's response, so sw.js needs a different one.)
+	@notsw not path /sw.js
+	header @notsw Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src __RELAY__; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+	# The service worker only fetches this site's own files (to cache them).
+	@sw path /sw.js
+	header @sw Content-Security-Policy "default-src 'none'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'"
 	# hashed assets never change; the page itself must always be revalidated
 	@assets path /assets/*
 	header @assets Cache-Control "public, max-age=31536000, immutable"
