@@ -2,13 +2,15 @@
 // - pages: network first, falling back to the cached shell
 // - /assets/* (content-hashed, never change): cache first
 // - everything else same-origin: network first, cache as fallback
+// A new version waits (it does not take over by itself) until the page asks for it, so the app can tell the user to reload
+// instead of silently running half old, half new code.
 // The build stamps the cache name below so every deploy gets its own cache; activation deletes the old ones.
 // Chat messages never touch this cache: they travel over the relay's WebSocket, which service workers do not see.
 const CACHE = 'chat-__BUILD__'
 const SHELL = ['/', '/icon.svg', '/manifest.webmanifest', '/icons/icon-192.png']
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()))
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)))
 })
 
 self.addEventListener('activate', (e) => {
@@ -38,6 +40,8 @@ self.addEventListener('fetch', (e) => {
   }
   e.respondWith(networkFirst(req))
 })
+
+self.addEventListener('message', (e) => { if (e.data === 'skip-waiting') self.skipWaiting() })
 
 // Tapping a notification brings the chat to the front.
 self.addEventListener('notificationclick', (e) => {

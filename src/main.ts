@@ -31,9 +31,35 @@ if (isNew) {
 // iOS has no install prompt: there the help explains "Share → Add to Home Screen".
 // This runs before the first `await` below on purpose: after it, the page's `load` event may already have fired.
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
-  const register = () => navigator.serviceWorker.register('/sw.js').catch(() => { /* works without it */ })
-  if (document.readyState === 'complete') register()
-  else addEventListener('load', register)
+  let updating = false // set when the user asks for the new version, so the first-install takeover does not reload the page
+  const showUpdate = (reg: ServiceWorkerRegistration) => {
+    $('update').hidden = false
+    $('update-later').onclick = () => { $('update').hidden = true }
+    $('update-reload').onclick = () => {
+      updating = true
+      reg.waiting?.postMessage('skip-waiting')
+      setTimeout(() => location.reload(), 3000) // in case the worker never answers
+    }
+  }
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (updating) location.reload() })
+  const register = async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('/sw.js')
+      // A worker that finishes installing while another one controls the page is a new version waiting for us.
+      const offer = () => { if (navigator.serviceWorker.controller) showUpdate(reg) }
+      if (reg.waiting) offer()
+      reg.addEventListener('updatefound', () => {
+        const w = reg.installing
+        w?.addEventListener('statechange', () => { if (w.state === 'installed') offer() })
+      })
+      // Long-lived tabs and installed apps do not navigate, so look for a new version now and then.
+      const check = () => { reg.update().catch(() => { /* offline */ }) }
+      setInterval(check, 30 * 60 * 1000)
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) check() })
+    } catch { /* works without it */ }
+  }
+  if (document.readyState === 'complete') void register()
+  else addEventListener('load', () => void register())
 }
 interface InstallPromptEvent extends Event { prompt(): Promise<void> }
 let installEvent: InstallPromptEvent | undefined

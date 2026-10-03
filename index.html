@@ -15,6 +15,11 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
+  <div id="update" class="update" role="status" hidden>
+    <span data-t="A new version is available. Reloading keeps the room, but you get a new identity."></span>
+    <button type="button" id="update-reload" class="primary" data-t="Reload"></button>
+    <button type="button" id="update-later" data-t="Later"></button>
+  </div>
   <main>
     <header class="hero">
       <img class="icon" src="/icon.svg" alt="" width="44" height="44">

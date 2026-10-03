@@ -43,4 +43,11 @@ describe('PWA files', () => {
     // and the page policy must not apply to it
     expect(caddy).toContain('@notsw not path /sw.js')
   })
+  it('a new service worker waits for the page instead of taking over by itself', () => {
+    const sw = readFileSync('public/sw.js', 'utf8')
+    const install = sw.slice(sw.indexOf("'install'"), sw.indexOf("'activate'"))
+    expect(install).not.toContain('skipWaiting') // only the message handler may call it
+    expect(sw).toContain("e.data === 'skip-waiting'")
+    expect(readFileSync('src/main.ts', 'utf8')).toContain("postMessage('skip-waiting')")
+  })
 })
