@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { decrypt, encrypt, roomKey, topicOf } from './crypto'
-import { nickFromPubkey, randomRoomId, validRoomId } from './names'
+import { nickFromPubkey, randomRoomId, roomNameFromTopic, validRoomId } from './names'
 import { ONLINE_FOR_MS, Roster } from './roster'
 
 describe('crypto', () => {
@@ -27,6 +27,12 @@ describe('names', () => {
     expect(r).not.toBe(randomRoomId())
     expect(validRoomId('x')).toBe(false)
     expect(validRoomId('<script>')).toBe(false)
+  })
+  it('room name is stable, readable and derived only from the topic', () => {
+    const topic = 'a1b2c3d4e5f6'.padEnd(32, '0')
+    expect(roomNameFromTopic(topic)).toBe(roomNameFromTopic(topic))
+    expect(roomNameFromTopic(topic)).toMatch(/^[a-z]+-[a-z]+-\d{1,2}$/)
+    expect(roomNameFromTopic(topic)).not.toBe(roomNameFromTopic('ffff0000aa'.padEnd(32, '1')))
   })
   it('stable nickname per key', () => {
     const k = 'ab12cd34ef56'.padEnd(64, '0')

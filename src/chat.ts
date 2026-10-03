@@ -6,7 +6,7 @@
 import { finalizeEvent, generateSecretKey, getPublicKey, verifyEvent } from 'nostr-tools/pure'
 import type { Event } from 'nostr-tools'
 import { decrypt, encrypt, roomKey, topicOf } from './crypto'
-import { nickFromPubkey } from './names'
+import { nickFromPubkey, roomNameFromTopic } from './names'
 import { connectRelay, type RelayClient } from './relay'
 import { isReaction, type Reaction } from './reactions'
 import { PRESENCE_EVERY_MS, Roster } from './roster'
@@ -78,6 +78,7 @@ export async function joinRoom(roomId: string, relayUrl: string, ev: ChatEvents)
 
   return {
     pubkey: pk,
+    roomName: roomNameFromTopic(topic),
     nick: nickFromPubkey(pk),
     /** Sends a message. Returns the reason if the relay rejects it. */
     async say(text: string): Promise<string | null> {
