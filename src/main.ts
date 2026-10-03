@@ -4,6 +4,9 @@ import { getLang, setLang, t, type Lang } from './i18n'
 import { randomRoomId, validRoomId } from './names'
 import { Reactions, REACTIONS, type Reaction } from './reactions'
 import { EMOJIS } from './emojis'
+import { splitLinks } from './linkify'
+import * as notify from './notify'
+import { qrDataUrl } from './qr'
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T
 
@@ -29,13 +32,18 @@ const statusEl = $('status')
 const statusText = $('status-text')
 let state: 'connecting' | 'open' | 'closed' = 'connecting'
 let people: { nick: string; mine: boolean }[] = []
+let unread = 0
+let bell = notify.isOn()
 
 const STATUS = { connecting: 'connecting…', open: 'connected', closed: 'offline, retrying…' } as const
 
 /** (Re)writes every text that depends on the language. */
 function render() {
   document.documentElement.lang = getLang()
-  document.title = roomName ? `#${roomName} · ${t('Ephemeral chat')}` : t('Ephemeral chat')
+  const base = roomName ? `#${roomName} · ${t('Ephemeral chat')}` : t('Ephemeral chat')
+  document.title = unread ? `(${unread}) ${base}` : base
+  $('bell').textContent = bell ? '🔔' : '🔕'
+  $('bell').setAttribute('aria-pressed', String(bell))
   document.querySelectorAll<HTMLElement>('[data-t]').forEach((el) => (el.textContent = t(el.dataset.t as never)))
   document.querySelectorAll<HTMLElement>('[data-t-title]').forEach((el) => { el.title = t(el.dataset.tTitle as never); el.setAttribute('aria-label', el.title) })
   document.querySelectorAll<HTMLInputElement>('[data-t-placeholder]').forEach((el) => (el.placeholder = t(el.dataset.tPlaceholder as never)))
@@ -51,6 +59,12 @@ function render() {
 const KNOWN = ['connection lost', 'not connected', 'no answer from the relay', 'the relay rejected it'] as const
 const knownReason = (err: string) => ((KNOWN as readonly string[]).includes(err) ? t(err as (typeof KNOWN)[number]) : err)
 
+/** True when the user is not looking at the chat (another tab, minimised, another window). */
+const away = () => document.hidden || !document.hasFocus()
+const seen = () => { if (unread) { unread = 0; render() } }
+document.addEventListener('visibilitychange', () => { if (!document.hidden) seen() })
+addEventListener('focus', seen)
+
 const reactions = new Reactions()
 const bubbles = new Map<string, HTMLElement>() // message id -> its reactions bar
 let me = ''
@@ -62,7 +76,17 @@ function addLine(cls: string, nick: string, text: string, at: number, id?: strin
   const who = document.createElement('b')
   who.textContent = nick
   const body = document.createElement('span')
-  body.textContent = text // never innerHTML: other people write this
+  // Links become <a>; everything else is a text node (never innerHTML: other people write this).
+  for (const part of splitLinks(text)) {
+    if (!part.url) { body.append(part.text); continue }
+    const a = document.createElement('a')
+    a.href = part.url
+    a.textContent = part.text
+    a.target = '_blank'
+    a.rel = 'noopener noreferrer nofollow'
+    a.referrerPolicy = 'no-referrer'
+    body.append(a)
+  }
   const time = document.createElement('time')
   time.textContent = new Date(at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   li.append(who, body, time)
@@ -141,7 +165,16 @@ const note = (text: string) => addLine('note', '', text, Date.now())
 
 const room = await joinRoom(roomId, relayUrl, {
   onStatus: (s) => { state = s; render() },
-  onMessage: (m) => addLine(m.mine ? 'mine' : 'other', m.nick, m.text, m.at, m.id),
+  onMessage: (m) => {
+    addLine(m.mine ? 'mine' : 'other', m.nick, m.text, m.at, m.id)
+    if (m.mine || !away()) return
+    unread++
+    render()
+    if (bell) notify.ping(t('New message in {room}', { room: `#${roomName}` }), t('New message from {nick}', { nick: m.nick }))
+  },
+  onTyping: (nicks) => {
+    $('typing').textContent = !nicks.length ? '' : nicks.length === 1 ? t('{names} is typing…', { names: nicks[0] }) : nicks.length === 2 ? t('{names} are typing…', { names: nicks.join(' & ') }) : t('Several people are typing…')
+  },
   onReaction: (r) => {
     // Our own echo changes nothing: it was already applied when we clicked.
     if (reactions.apply(r.messageId, r.emoji, r.pubkey, r.on)) renderReactions(r.messageId)
@@ -171,6 +204,27 @@ $<HTMLFormElement>('form').addEventListener('submit', async (e) => {
     input.value = text
   }
   input.focus()
+})
+
+// Native share sheet (phones, some desktops); the plain copy button is always there.
+if (typeof navigator.share === 'function') {
+  const btn = $('share-native')
+  btn.hidden = false
+  btn.addEventListener('click', () => { navigator.share({ title: document.title, url: location.href }).catch(() => { /* cancelled */ }) })
+}
+
+// QR code of the room link, for passing it to a phone next to you.
+const qr = $<HTMLDialogElement>('qr')
+$('qr-btn').addEventListener('click', () => { $<HTMLImageElement>('qr-img').src = qrDataUrl(location.href); qr.showModal() })
+$('qr-close').addEventListener('click', () => qr.close())
+qr.addEventListener('click', (e) => { if (e.target === qr) qr.close() })
+
+// Bell: sound + notification for messages that arrive while you are away.
+$('bell').addEventListener('click', async () => {
+  const r = await notify.setOn(!bell)
+  bell = r.on
+  render()
+  note(!bell ? t('Notifications off.') : r.blocked ? t('Notifications are blocked in this browser, so only the sound and the counter will work.') : t('Notifications on: you will hear a sound and see a counter in the tab title when you are away.'))
 })
 
 $('share').addEventListener('click', async () => {
@@ -227,6 +281,9 @@ emojiBtn.addEventListener('click', () => {
   emojiBtn.setAttribute('aria-expanded', String(!emojiPanel.hidden))
   if (!emojiPanel.hidden) log.scrollTop = log.scrollHeight
 })
+
+// Tell the room you are typing (throttled inside).
+textInput.addEventListener('input', () => { if (textInput.value.trim()) room.typing() })
 
 document.addEventListener('click', (e) => { if (!palette.hidden && !palette.contains(e.target as Node)) closePalette() })
 addEventListener('keydown', (e) => { if (e.key === 'Escape') { closePalette(); $<HTMLDetailsElement>('people').open = false } })

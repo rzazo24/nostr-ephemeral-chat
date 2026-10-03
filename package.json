@@ -6,7 +6,13 @@
   "description": "Ephemeral Nostr chat: a new random room and a new identity on every visit. Messages are encrypted with a key derived from the room link.",
   "homepage": "https://chat.hivescope.xyz",
   "repository": "github:rzazo24/nostr-ephemeral-chat",
-  "keywords": ["nostr", "chat", "ephemeral", "privacy", "websocket"],
+  "keywords": [
+    "nostr",
+    "chat",
+    "ephemeral",
+    "privacy",
+    "websocket"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -15,7 +21,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "nostr-tools": "^2.25.2"
+    "nostr-tools": "^2.25.2",
+    "qrcode-generator": "^2.0.4"
   },
   "devDependencies": {
     "@types/ws": "^8.18.2",

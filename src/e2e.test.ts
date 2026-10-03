@@ -16,9 +16,11 @@ const until = async (cond: () => boolean, ms = 8000) => {
 describe.skipIf(!RELAY)('two people in a room', () => {
   const ids = new Map<string, string>()
   const reacts: string[] = []
+  const typings: string[][] = []
   const join = (room: string, got: string[], roster: string[][]) =>
     joinRoom(room, RELAY!, {
       onMessage: (m) => { got.push(`${m.nick}: ${m.text}`); ids.set(m.text, m.id) },
+      onTyping: (n) => typings.push(n),
       onReaction: (r) => reacts.push(`${r.emoji}${r.on ? '+' : '-'}`),
       onRoster: (l) => roster.push(l.filter((p) => !p.mine).map((p) => p.nick)),
       onStatus: () => {},
@@ -38,6 +40,11 @@ describe.skipIf(!RELAY)('two people in a room', () => {
     expect(gotA).toContain(`${a.nick}: hi from A`)
     expect(gotA).toContain(`${b.nick}: hi from B ñ 👋`)
     expect(gotC).toEqual([])
+    // "is typing" reaches the other person and ends when a message arrives
+    b.typing()
+    await until(() => typings.some((n) => n.includes(b.nick)))
+    expect(await b.say('typed it')).toBeNull()
+    await until(() => typings.at(-1)?.length === 0)
     // reactions reach the other person (and the sender's own echo), with the right message id
     const target = ids.get('hi from A')!
     expect(await b.react(target, '👍', true)).toBeNull()

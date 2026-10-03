@@ -15,12 +15,15 @@ Se conecta por defecto a `wss://relay.hivescope.xyz` (vale cualquier relé que a
 - **Eventos efímeros** (kinds 20000–29999): los relés los reenvían a quien esté suscrito y nunca los guardan.
   - `20001` — mensaje de chat
   - `20003` — reacción a un mensaje (cifrado `{"e":"👍","on":true}` más un tag `["e", <id del mensaje>]`; `on:false` la quita). Lista cerrada: 👍 ❤️ 😂 😮 😢 🙏
-  - `20002` — entrada / latido (cada 30 s; con un tag `["bye"]` al salir). Así funciona la lista de «quién está aquí», porque no hay historial al que preguntar.
+  - `20002` — presencia: entrada / latido cada 30 s y avisos de «está escribiendo» (como máximo uno cada 4 s mientras escribes). Ambos contenidos van cifrados y miden lo mismo, así que el relé no los distingue; un tag `["bye"]` marca la salida. Así funciona la lista de «quién está aquí», porque no hay historial al que preguntar.
 - **Identidad**: una clave secp256k1 nueva en cada visita, solo en memoria. El apodo (p. ej. `calm-otter-42`) sale de la clave pública, así todos ven el mismo.
 - **Sala**: un id aleatorio de 80 bits en el fragmento de la URL (`#…`), que los navegadores nunca envían a ningún servidor.
 - **Privacidad**: del id de sala se deriva (HKDF) una clave AES-GCM con la que se cifra el contenido, y la etiqueta de sala que se publica en el relé es un hash SHA-256 del id. Quien administra el relé ve quién habla, cuándo y cuánto, pero no qué, y no puede entrar en una sala sin el enlace. **No** sustituye a un protocolo de cifrado extremo a extremo revisado: cualquiera con el enlace puede leer y escribir, y no hay secreto hacia delante.
 - **Relé**: la versión desplegada va fijada a un relé (`VITE_RELAY`, por defecto `wss://relay.hivescope.xyz`), lo que permite una CSP estricta. En desarrollo, o compilando con `VITE_ALLOW_CUSTOM_RELAY=1`, puedes elegir otro con `?relay=wss://…` o desde el pie de página.
 - **Reacciones y emojis**: pulsa ☺+ bajo un mensaje para reaccionar; vuelve a pulsar tu reacción para quitarla. Quien llega tarde no ve las reacciones anteriores (no se guarda nada). En el PC hay un selector de emojis junto a la caja de texto; los dispositivos táctiles usan su propio teclado.
+- **Notificaciones**: el título de la pestaña siempre muestra los mensajes sin leer. La campana (desactivada por defecto) añade un sonido y, si el navegador lo permite, una notificación del sistema; las notificaciones nunca llevan el texto del mensaje.
+- **Compartir**: copiar el enlace, el menú de compartir del sistema (donde exista) o un código QR del enlace de la sala.
+- Los **enlaces** de los mensajes se pueden pulsar (solo http/https, con `noopener` y sin referrer); y encima de la caja de texto se ve **«X está escribiendo…»**.
 - **Idiomas y ayuda**: inglés y español, con un botón en la cabecera; el botón ? abre una ayuda. Por defecto, el del navegador.
 
 ## Desarrollo
@@ -55,6 +58,10 @@ Necesita un registro DNS del dominio del chat hacia el servidor, y que el Caddyf
 | `src/reactions.ts` | Estado de las reacciones por mensaje (lista cerrada) |
 | `src/emojis.ts` | Emojis del selector de escritorio |
 | `src/roster.ts` | Quién está conectado, a partir de los latidos |
+| `src/linkify.ts` | Detección segura de URLs en los mensajes |
+| `src/typing.ts` | Quién está escribiendo ahora |
+| `src/notify.ts` | Campana: sonido y notificaciones del sistema |
+| `src/qr.ts` | Código QR del enlace de la sala |
 | `src/names.ts` | Ids de sala y apodos aleatorios |
 | `src/i18n.ts` | Textos en inglés y español |
 | `src/main.ts` | Interfaz |

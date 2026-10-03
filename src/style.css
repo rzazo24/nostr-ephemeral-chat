@@ -104,3 +104,28 @@ footer p { margin:2px 0; overflow-wrap:anywhere }
 #help h3 { margin:18px 0 4px; font-size:1rem; color:var(--accent) }
 #help p { margin:6px 0; color:var(--text) }
 @media (max-width:520px) { #help { width:100%; max-width:none; height:100%; max-height:none; border-radius:0; border:none } }
+
+/* Links, typing, QR */
+#log li a { color:var(--accent); text-decoration:underline; text-underline-offset:2px }
+.typing { min-height:1.4em; margin:-6px 4px -4px; font-size:.85rem; color:var(--muted); font-style:italic }
+#qr { width:min(24rem, calc(100% - 24px)); padding:0 20px 16px; text-align:center; color:var(--text); background:var(--panel); border:1px solid var(--border); border-radius:12px }
+#qr::backdrop { background:rgba(0,0,0,.65) }
+#qr .help-head { position:static; display:flex; justify-content:space-between; align-items:center; padding:14px 0 8px; background:none }
+#qr h2 { margin:0; font-size:1.2rem }
+#qr img { display:block; margin:8px auto; width:min(100%, 320px); height:auto; image-rendering:pixelated; border-radius:8px }
+#bell { font-size:.9rem }
+#bell[aria-pressed=true] { border-color:var(--accent); color:var(--accent) }
+
+/* Phones: keep the header on one line and the action buttons in a tidy 2-column grid */
+@media (max-width: 520px) {
+  .hero { gap: 8px }
+  .icon { width: 36px; height: 36px }
+  h1 { font-size: 1.05rem; white-space: nowrap }
+  .lang button { padding: 0 8px }
+  .actions { display: grid; grid-template-columns: 1fr 1fr; width: 100%; margin-left: 0 }
+  .actions button { white-space: nowrap; padding: 0 8px }
+}
+@media (max-width: 400px) {
+  .icon { display: none }
+  h1 { overflow: hidden; text-overflow: ellipsis }
+}

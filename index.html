@@ -20,6 +20,7 @@
         <button type="button" data-lang="en">EN</button>
         <button type="button" data-lang="es">ES</button>
       </div>
+      <button type="button" id="bell" class="help-btn" data-t-title="Notifications" aria-pressed="false">🔕</button>
       <button type="button" id="help-btn" class="help-btn" data-t-title="Help" aria-haspopup="dialog">?</button>
     </header>
 
@@ -36,12 +37,15 @@
       </details>
       <div class="actions">
         <button id="share" type="button" data-t="Copy link"></button>
+        <button id="share-native" type="button" data-t="Share" hidden></button>
+        <button id="qr-btn" type="button" data-t="QR code"></button>
         <button id="new" type="button" data-t="New room"></button>
       </div>
     </section>
 
     <ul id="log" class="card" aria-live="polite"></ul>
 
+    <div id="typing" class="typing" aria-live="polite"></div>
     <div id="emoji-panel" class="card" hidden></div>
     <form id="form" autocomplete="off">
       <button id="emoji-btn" type="button" class="emoji-btn" data-t-title="Emoji" aria-expanded="false" aria-controls="emoji-panel">😊</button>
@@ -62,6 +66,7 @@
     <p data-t="The room has a readable name (like quiet-harbor-42) that everyone in it sees. It is only a label: what gives access is the link."></p>
     <p data-t="Copy the link with “Copy link” and send it to whoever you want: everyone who opens it is in the same room."></p>
     <p data-t="“New room” leaves this room and starts another one with a different link."></p>
+    <p data-t="Use “Share” (phones) or “QR code” to pass the link to someone next to you."></p>
     <h3 data-t="Privacy"></h3>
     <p data-t="Messages are encrypted with a key that lives in the part of the link after the #. Browsers never send that part to any server, so the relay only sees scrambled text."></p>
     <p data-t="The relay can still see that someone is connected, when they write and how much, but not what."></p>
@@ -72,9 +77,18 @@
     <h3 data-t="Reactions and emojis"></h3>
     <p data-t="Press ☺+ under a message to react with 👍 ❤️ 😂 😮 😢 or 🙏. Press your own reaction again to remove it. Like messages, reactions are not stored."></p>
     <p data-t="On a computer, the 😊 button next to the message box opens an emoji picker. On a phone, use your keyboard’s emojis."></p>
+    <h3 data-t="Notifications, links and typing"></h3>
+    <p data-t="The bell turns on a sound and, if your browser allows it, a notification when a message arrives while you are on another tab. Notifications never include the message text. The tab title always shows how many messages you have not seen."></p>
+    <p data-t="Links in messages are clickable and open in a new tab. Check where they lead before opening them."></p>
+    <p data-t="You can see when someone is typing just above the message box."></p>
     <h3 data-t="If something fails"></h3>
     <p data-t="If the status shows “offline”, the chat reconnects by itself. Messages written meanwhile are not sent."></p>
     <p data-t="The relay limits how fast you can send. If a message is rejected, the reason appears in the chat; wait a few seconds and try again."></p>
+  </dialog>
+  <dialog id="qr" aria-labelledby="qr-title">
+    <div class="help-head"><h2 id="qr-title" data-t="QR code"></h2><button type="button" id="qr-close" data-t="Close"></button></div>
+    <img id="qr-img" alt="" width="320" height="320">
+    <p data-t="Scan it to join this room. Show it only to people next to you."></p>
   </dialog>
   <div id="palette" class="card" role="menu" hidden></div>
   <script type="module" src="/src/main.ts"></script>
