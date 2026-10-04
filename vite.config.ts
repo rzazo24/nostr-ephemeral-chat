@@ -11,4 +11,4 @@ const stampServiceWorker = (): Plugin => ({
   },
 })
 
-export default defineConfig({ plugins: [stampServiceWorker()], build: { target: 'es2022' }, test: { environment: 'node' } })
+export default defineConfig({ plugins: [stampServiceWorker()], build: { target: 'es2022' }, test: { environment: 'node', include: ['src/**/*.test.ts'] } /* test/e2e runs on its own, with Playwright */ })

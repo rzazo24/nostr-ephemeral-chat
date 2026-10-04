@@ -9,6 +9,7 @@ import type { Event } from 'nostr-tools'
 import { decrypt, encrypt, roomKey, topicOf } from './crypto'
 import { nickFromPubkey, roomNameFromTopic } from './names'
 import { connectRelay, type RelayClient } from './relay'
+import { Outbox, type Priority } from './outbox'
 import { isReaction, type Reaction } from './reactions'
 import { PRESENCE_EVERY_MS, Roster } from './roster'
 import { Typing, TYPING_EVERY_MS } from './typing'
@@ -30,6 +31,7 @@ export async function joinRoom(roomId: string, relayUrl: string, ev: ChatEvents)
   const sk = generateSecretKey() // a new identity on every visit, in memory only
   const pk = getPublicKey(sk)
   const [topic, key] = await Promise.all([topicOf(roomId), roomKey(roomId)])
+  const outbox = new Outbox()
   const roster = new Roster()
   const typing = new Typing()
   let typingShown = ''
@@ -40,15 +42,17 @@ export async function joinRoom(roomId: string, relayUrl: string, ev: ChatEvents)
 
   const emitRoster = () => ev.onRoster(roster.online().map((p) => ({ pubkey: p, nick: nickFromPubkey(p), mine: p === pk })))
 
-  const send = async (kind: number, text: string, extra: string[][] = []) => {
+  // Messages and reactions are 'high' (they wait for a free slot and are retried); presence is 'mid'; "is typing" beats are 'low'
+  // and are the first thing dropped when the budget is short (see outbox.ts).
+  const send = async (kind: number, text: string, extra: string[][] = [], priority: Priority = 'high', onWait?: () => void) => {
     const event = finalizeEvent({ kind, created_at: Math.floor(Date.now() / 1000), tags: [['t', topic], ...extra], content: await encrypt(key, text) }, sk)
-    return client!.publish(event)
+    return outbox.send(priority, () => client!.publish(event), onWait)
   }
   const emitTyping = () => {
     const nicks = typing.active().filter((p) => p !== pk).map(nickFromPubkey).sort()
     if (nicks.join() !== typingShown) { typingShown = nicks.join(); ev.onTyping(nicks) }
   }
-  const hello = () => send(KIND_PRESENCE, 'hello!')
+  const hello = () => send(KIND_PRESENCE, 'hello!', [], 'mid')
 
   client = connectRelay({
     url: relayUrl,
@@ -100,13 +104,13 @@ export async function joinRoom(roomId: string, relayUrl: string, ev: ChatEvents)
       const now = Date.now()
       if (now - lastTypingSent < TYPING_EVERY_MS) return
       lastTypingSent = now
-      void send(KIND_PRESENCE, 'typing')
+      void send(KIND_PRESENCE, 'typing', [], 'low')
     },
-    /** Sends a message. Returns the reason if the relay rejects it. */
-    async say(text: string): Promise<string | null> {
+    /** Sends a message. Returns the reason if the relay rejects it. `onWait` is called each time it has to wait before a retry. */
+    async say(text: string, onWait?: () => void): Promise<string | null> {
       const clean = text.trim().slice(0, MAX_TEXT)
       if (!clean) return null
-      const r = await send(KIND_MESSAGE, clean)
+      const r = await send(KIND_MESSAGE, clean, [], 'high', onWait)
       return r.ok ? null : r.reason || 'the relay rejected it'
     },
     /** Adds or removes your reaction to a message. Returns the reason if the relay rejects it. */
@@ -116,7 +120,7 @@ export async function joinRoom(roomId: string, relayUrl: string, ev: ChatEvents)
     },
     leave() {
       clearInterval(beat); clearInterval(expire); clearTimeout(welcome)
-      void send(KIND_PRESENCE, 'bye!!!', [['bye']]).finally(() => client?.close())
+      void send(KIND_PRESENCE, 'bye!!!', [['bye']], 'mid').finally(() => client?.close())
     },
   }
 }

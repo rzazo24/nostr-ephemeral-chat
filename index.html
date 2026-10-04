@@ -66,7 +66,10 @@
     <div id="emoji-panel" class="card" hidden></div>
     <form id="form" autocomplete="off">
       <button id="emoji-btn" type="button" class="emoji-btn" data-t-title="Emoji" aria-expanded="false" aria-controls="emoji-panel">😊</button>
-      <input id="text" type="text" maxlength="1000" data-t-placeholder="Type a message…" enterkeyhint="send">
+      <div class="field">
+        <textarea id="text" rows="1" maxlength="1000" data-t-placeholder="Type a message…" enterkeyhint="send"></textarea>
+        <span id="count" class="count" aria-hidden="true"></span>
+      </div>
       <button type="submit" class="primary" data-t="Send"></button>
     </form>
 
@@ -84,6 +87,7 @@
     <p data-t="Copy the link with “Copy link” and send it to whoever you want: everyone who opens it is in the same room."></p>
     <p data-t="“New room” leaves this room and starts another one with a different link."></p>
     <p data-t="Use “Share” (phones) or “QR code” to pass the link to someone next to you."></p>
+    <p data-t="On a computer, Enter sends and Shift+Enter adds a new line. On a phone, Enter adds a new line and the Send button sends. A message can have up to 1000 characters."></p>
     <h3 data-t="Privacy"></h3>
     <p data-t="Messages are encrypted with a key that lives in the part of the link after the #. Browsers never send that part to any server, so the relay only sees scrambled text."></p>
     <p data-t="The relay can still see that someone is connected, when they write and how much, but not what."></p>
@@ -104,6 +108,7 @@
     <p><span data-t="Relay:"></span> <code id="help-relay"></code> · <a href="https://github.com/rzazo24/nostr-ephemeral-chat" target="_blank" rel="noopener noreferrer" data-t="Source code"></a></p>
     <h3 data-t="If something fails"></h3>
     <p data-t="If the status shows “reconnecting…”, the chat reconnects by itself. Messages written meanwhile are not sent."></p>
+    <p data-t="If the relay says you are sending too fast, the message waits (dimmed, “Waiting for the relay…”) and is retried by itself for about a minute before giving up."></p>
     <p data-t="The relay limits how fast you can send. If a message is rejected, the reason appears in the chat; wait a few seconds and try again."></p>
   </dialog>
   <dialog id="qr" aria-labelledby="qr-title" tabindex="-1" autofocus>

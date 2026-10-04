@@ -5,6 +5,7 @@ import { randomRoomId, validRoomId } from './names'
 import { Reactions, REACTIONS, type Reaction } from './reactions'
 import { EMOJIS } from './emojis'
 import { splitLinks } from './linkify'
+import { isRateLimited } from './outbox'
 import * as notify from './notify'
 import { qrDataUrl } from './qr'
 
@@ -109,7 +110,7 @@ function render() {
 
 // Relay reasons come in English; the few we generate ourselves are translated.
 const KNOWN = ['connection lost', 'not connected', 'no answer from the relay', 'the relay rejected it'] as const
-const knownReason = (err: string) => ((KNOWN as readonly string[]).includes(err) ? t(err as (typeof KNOWN)[number]) : err)
+const knownReason = (err: string) => (isRateLimited(err) ? t('The relay is limiting how fast you can send. Wait a minute and try again.') : (KNOWN as readonly string[]).includes(err) ? t(err as (typeof KNOWN)[number]) : err)
 
 /** True when the user is not looking at the chat (another tab, minimised, another window). */
 const away = () => document.hidden || !document.hasFocus()
@@ -218,6 +219,7 @@ const note = (text: string) => addLine('note', '', text, Date.now())
 const room = await joinRoom(roomId, relayUrl, {
   onStatus: (s) => { state = s; render() },
   onMessage: (m) => {
+    if (m.mine) { const p = pendingLines.find((x) => x.text === m.text.trim()); if (p) dropPending(p) }
     addLine(m.mine ? 'mine' : 'other', m.nick, m.text, m.at, m.id)
     if (m.mine || !away()) return
     unread++
@@ -245,18 +247,59 @@ render()
 note(isNew ? t('New room. Copy the link and send it to whoever you like.') : t('You joined a room. You will only see what is written from now on.'))
 note(t('Whoever joins later will not see what came before: nothing is stored.'))
 
-$<HTMLFormElement>('form').addEventListener('submit', async (e) => {
+// The message box grows with what you type (up to a few lines). On a computer Enter sends and Shift+Enter adds a line; on a touch
+// screen Enter adds a line (the Send button sends), as in most phone chats.
+const textInput = $<HTMLTextAreaElement>('text')
+const form = $<HTMLFormElement>('form')
+const touchScreen = matchMedia('(pointer: coarse)').matches
+textInput.enterKeyHint = touchScreen ? 'enter' : 'send'
+const countEl = $('count')
+function fitInput() {
+  textInput.style.height = 'auto'
+  textInput.style.height = `${textInput.scrollHeight + 2}px` // +2: the border (box-sizing: border-box); max-height in CSS caps it
+  const n = textInput.value.length
+  countEl.textContent = n >= 800 ? `${n}/${textInput.maxLength}` : ''
+  countEl.classList.toggle('near', n >= 950)
+}
+textInput.addEventListener('input', fitInput)
+textInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && !touchScreen) { e.preventDefault(); form.requestSubmit() }
+})
+
+// A message shows up in the chat when the relay echoes it back. While it waits (or is being retried because of the relay's rate limit)
+// a dimmed copy is shown, so it never looks lost; it is replaced by the real one, or removed with a note if it cannot be sent.
+const pendingLines: { li: HTMLElement; text: string }[] = []
+function addPending(text: string) {
+  addLine('mine pending', '', text, Date.now())
+  const li = log.lastElementChild as HTMLElement
+  li.querySelector('b')!.textContent = t('Sending…')
+  const p = { li, text: text.trim() }
+  pendingLines.push(p)
+  return p
+}
+function dropPending(p: { li: HTMLElement }) {
+  const i = pendingLines.indexOf(p as never)
+  if (i >= 0) pendingLines.splice(i, 1)
+  p.li.remove()
+}
+
+form.addEventListener('submit', async (e) => {
   e.preventDefault()
-  const input = $<HTMLInputElement>('text')
-  const text = input.value
+  const text = textInput.value
   if (!text.trim()) return
-  input.value = ''
-  const err = await room.say(text)
+  textInput.value = ''
+  fitInput()
+  const pending = addPending(text)
+  const err = await room.say(text, () => { pending.li.querySelector('b')!.textContent = t('Waiting for the relay…') })
   if (err) {
+    dropPending(pending)
     note(t('Not sent: {reason}', { reason: knownReason(err) }))
-    input.value = text
+    textInput.value = text
+    fitInput()
+  } else {
+    setTimeout(() => dropPending(pending), 2500) // normally the echo has replaced it already
   }
-  input.focus()
+  textInput.focus()
 })
 
 // Native share sheet (phones, some desktops); the plain copy button is always there.
@@ -315,7 +358,7 @@ $('help-close').addEventListener('click', () => help.close())
 help.addEventListener('click', (e) => { if (e.target === help) help.close() })
 
 // Emoji picker for the message box (own panel, no library). Inserts at the cursor.
-const emojiPanel = $('emoji-panel'), emojiBtn = $<HTMLButtonElement>('emoji-btn'), textInput = $<HTMLInputElement>('text')
+const emojiPanel = $('emoji-panel'), emojiBtn = $<HTMLButtonElement>('emoji-btn')
 emojiPanel.replaceChildren(...EMOJIS.map((emoji) => {
   const b = document.createElement('button')
   b.type = 'button'
@@ -325,6 +368,7 @@ emojiPanel.replaceChildren(...EMOJIS.map((emoji) => {
     const a = textInput.selectionStart ?? textInput.value.length, z = textInput.selectionEnd ?? a
     if (textInput.value.length - (z - a) + emoji.length > textInput.maxLength) return
     textInput.setRangeText(emoji, a, z, 'end')
+    textInput.dispatchEvent(new Event('input')) // resize + typing beat + counter
     textInput.focus()
   })
   return b

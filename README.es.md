@@ -23,6 +23,8 @@ Se conecta por defecto a `wss://relay.hivescope.xyz` (vale cualquier relé que a
 - **Privacidad**: del id de sala se deriva (HKDF) una clave AES-GCM con la que se cifra el contenido, y la etiqueta de sala que se publica en el relé es un hash SHA-256 del id. Quien administra el relé ve quién habla, cuándo y cuánto, pero no qué, y no puede entrar en una sala sin el enlace. **No** sustituye a un protocolo de cifrado extremo a extremo revisado: cualquiera con el enlace puede leer y escribir, y no hay secreto hacia delante.
 - **Relé**: la versión desplegada va fijada a un relé (`VITE_RELAY`, por defecto `wss://relay.hivescope.xyz`), lo que permite una CSP estricta. En desarrollo, o compilando con `VITE_ALLOW_CUSTOM_RELAY=1`, puedes elegir otro con `?relay=wss://…` o desde el pie de página.
 - **Reacciones y emojis**: pulsa ☺+ bajo un mensaje para reaccionar; vuelve a pulsar tu reacción para quitarla. Quien llega tarde no ve las reacciones anteriores (no se guarda nada). En el PC hay un selector de emojis junto a la caja de texto; los dispositivos táctiles usan su propio teclado.
+- **Caja de mensajes**: crece según escribes; en un ordenador Intro envía y Mayús+Intro añade una línea, y en una pantalla táctil Intro añade una línea y el botón Enviar envía. Cerca del límite de 1000 caracteres sale un contador.
+- **Enviar demasiado rápido**: el cliente lleva su propio presupuesto por debajo del límite por IP del relé, descarta primero lo cosmético («está escribiendo») y reintenta un mensaje rechazado durante cerca de un minuto (se ve atenuado, «Esperando al relé…») antes de devolverte el texto con un aviso claro.
 - **Notificaciones**: el título de la pestaña siempre muestra los mensajes sin leer. La campana (desactivada por defecto) añade un sonido y, si el navegador lo permite, una notificación del sistema; las notificaciones nunca llevan el texto del mensaje.
 - **Compartir**: copiar el enlace, el menú de compartir del sistema (donde exista) o un código QR del enlace de la sala.
 - Los **enlaces** de los mensajes se pueden pulsar (solo http/https, con `noopener` y sin referrer); y encima de la caja de texto se ve **«X está escribiendo…»**.
@@ -53,6 +55,16 @@ Necesita un registro DNS del dominio del chat hacia el servidor, y que el Caddyf
 
 Los iconos de `public/icons/` se generaron a partir de `public/icon.svg` y `icons-src/full-bleed.svg` (la versión a sangre usada en los iconos maskable y de Apple).
 
+### Pruebas
+
+| Comando | Qué ejecuta |
+|---|---|
+| `npm test` | Pruebas unitarias de la lógica (cifrado, salas, reacciones, presupuesto de envío y reintentos, enlaces, traducciones, reglas de diseño) |
+| `RELAY_URL=wss://… npm test` | Lo mismo, más una prueba de protocolo contra un relé real |
+| `cd test/e2e && npm install && npx playwright install chromium && RELAY_BIN=/ruta/a/nostr-relay-khatru npm test` | Las pruebas de navegador: dos personas en una sala, reacciones, «escribiendo», caja multilínea, límites de velocidad (con un relé real y con uno de mentira), diseño en móvil, botones, instalación/sin conexión/actualización de la PWA — todo servido con la CSP de producción, leída de `deploy/chat.caddy.template` |
+
+El CI ejecuta las tres (las de navegador compilan el relé de [nostr-relay-khatru](https://github.com/rzazo24/nostr-relay-khatru)).
+
 ### Capturas
 
 `docs/screenshot*.png` se generan desde la web publicada (dos pestañas reales hablando por el relé). Para renovarlas tras cambiar la interfaz:
@@ -80,6 +92,8 @@ Tarda unos cuatro minutos: los relés limitan por IP, así que el script espera 
 | `src/qr.ts` | Código QR del enlace de la sala |
 | `public/sw.js`, `public/manifest.webmanifest` | PWA: service worker (con el nombre de caché sellado por `vite.config.ts` en cada build) y manifiesto |
 | `scripts/screenshots.mjs` | Regenera las capturas del README |
+| `src/outbox.ts` | Presupuesto de envío, prioridades y reintentos (mira el comentario: cómo se comporta de verdad el limitador del relé) |
+| `test/e2e/` | Pruebas de navegador (Playwright) y su arnés |
 | `src/names.ts` | Ids de sala y apodos aleatorios |
 | `src/i18n.ts` | Textos en inglés y español |
 | `src/main.ts` | Interfaz |

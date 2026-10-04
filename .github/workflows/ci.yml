@@ -18,3 +18,45 @@ jobs:
       - run: npm test
         env:
           RELAY_URL: wss://relay.hivescope.xyz
+
+  # The real app in a real browser (Chromium, desktop and an emulated iPhone) against the real relay, served under the production
+  # content-security policies. It builds the relay from its repository (default branch), so a relay change that breaks the chat shows up here.
+  browser-test:
+    name: Browser tests (Playwright)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: rzazo24/nostr-relay-khatru
+          path: relay
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: relay/go.mod
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Build the relay
+        working-directory: relay
+        run: CGO_ENABLED=1 go build -o "$GITHUB_WORKSPACE/relay-bin" .
+      - name: Install the test dependencies and Chromium
+        working-directory: test/e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Run the browser tests
+        working-directory: test/e2e
+        env:
+          RELAY_BIN: ${{ github.workspace }}/relay-bin
+        run: |
+          set +e
+          npm test 2>&1 | tee "$RUNNER_TEMP/e2e.log"
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            # failures also show up as annotations (visible without opening the log)
+            grep -E "^\s*not ok|error:|AssertionError|Timeout|expected:|actual:" "$RUNNER_TEMP/e2e.log" | head -25 | while IFS= read -r l; do echo "::error::${l:0:300}"; done
+          fi
+          exit "$status"

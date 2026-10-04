@@ -1,0 +1,12 @@
+{
+  "name": "nostr-ephemeral-chat-e2e",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test --test-concurrency=1 --test-timeout=180000 chat.test.mjs"
+  },
+  "dependencies": {
+    "playwright": "1.63.0",
+    "ws": "^8.18.0"
+  }
+}
