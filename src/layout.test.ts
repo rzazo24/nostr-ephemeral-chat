@@ -29,4 +29,10 @@ describe('layout stability', () => {
     expect(html).toMatch(/<dialog id="help"[^>]*autofocus/)
     expect(html).toMatch(/<dialog id="qr"[^>]*autofocus/)
   })
+  it('every button flashes for about a second when pressed, with a class that removes itself', () => {
+    const main = readFileSync('src/main.ts', 'utf8')
+    expect(main).toMatch(/classList\.add\('flash'\)/)
+    expect(main).toMatch(/classList\.remove\('flash'\), 1000\)/)
+    expect(css).toMatch(/button\.flash \{[^}]*border-color: var\(--accent\)/)
+  })
 })

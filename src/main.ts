@@ -67,6 +67,16 @@ addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEven
 addEventListener('appinstalled', () => { installEvent = undefined; $('install').hidden = true })
 $('install').addEventListener('click', async () => { await installEvent?.prompt(); installEvent = undefined; $('install').hidden = true })
 
+// Pressed-button flash: any <button> lights its border for a second when pressed (mouse or touch) and then goes back to normal.
+// Done with a class that removes itself, so nothing can stay lit (see the .flash rules in style.css).
+document.addEventListener('click', (e) => {
+  const b = e.target instanceof Element ? e.target.closest('button') : null
+  if (!b) return
+  b.classList.add('flash')
+  clearTimeout((b as HTMLButtonElement & { _flash?: number })._flash)
+  ;(b as HTMLButtonElement & { _flash?: number })._flash = window.setTimeout(() => b.classList.remove('flash'), 1000)
+})
+
 // Running as an installed app (home-screen icon): the CSS drops the footer and trims the bottom margin.
 if (matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone) document.documentElement.classList.add('standalone')
 

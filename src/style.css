@@ -177,3 +177,9 @@ html, body { overscroll-behavior: none }
 #log { overscroll-behavior: contain }
 /* The help/QR sheets take focus themselves, so no button inside them looks permanently highlighted */
 dialog:focus, dialog:focus-visible { outline: none }
+
+/* Pressed-button flash (the class is added and removed by main.ts: about a second). Fades in and out; never stays lit. */
+button { transition: border-color .35s, box-shadow .35s }
+button.flash { border-color: var(--accent) !important; box-shadow: 0 0 0 3px rgba(45, 212, 191, .28) !important } /* !important: it must win over hover/pressed styles of individual buttons */
+button.primary.flash { box-shadow: 0 0 0 3px rgba(45, 212, 191, .35) !important }
+#emoji-panel button.flash { box-shadow: none !important } /* the picker is a grid of borderless emojis: no halo */
