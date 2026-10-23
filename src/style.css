@@ -198,3 +198,4 @@ button.primary.flash { box-shadow: 0 0 0 3px rgba(45, 212, 191, .35) !important 
 #bar .new-menu button { flex:0 0 auto; min-height:32px; padding:0 10px; font-size:inherit; line-height:1 }
 @media (max-width:520px) { .actions-col { margin-left:0; width:100% } }
 @media (max-width:400px) { .new-menu { flex-wrap:wrap } .new-menu > span { flex-basis:100%; text-align:center } }
+#log li.note.back { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:6px } #log li.note.back button { min-height:32px; padding:0 10px; font-size:inherit }

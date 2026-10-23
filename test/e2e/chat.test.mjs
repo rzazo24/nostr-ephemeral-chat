@@ -342,6 +342,28 @@ describe('ephemeral chat', () => {
     assert.ok(lines.findIndex((l) => l.includes('for whoever comes later')) < lines.findIndex((l) => l.includes('keeps its messages')), lines.join(' | '))
   })
 
+  it('opened without a link (as the installed app does), it offers to go back to the last room that keeps messages; Forget forgets it', async () => {
+    const a = await open(normal)
+    await online(a)
+    await Promise.all([a.waitForEvent('load'), a.evaluate(() => { location.hash = Math.random().toString(36).slice(2, 18).replace(/[^a-z0-9]/g, 'x').padEnd(16, 'x') + '-7d'; location.reload() })])
+    await online(a)
+    const kept = a.url()
+    await a.goto(normal.appUrl) // what the home-screen icon opens: no room in the link
+    await online(a)
+    await a.waitForSelector('#log li.back')
+    await Promise.all([a.waitForEvent('load'), a.click('#log li.back button:first-of-type')])
+    await online(a)
+    assert.equal(a.url(), kept)
+    await a.goto(normal.appUrl)
+    await online(a)
+    await a.click('#log li.back button:last-of-type')
+    assert.equal(await a.locator('#log li.back').count(), 0)
+    await a.goto(normal.appUrl)
+    await online(a)
+    await sleep(500)
+    assert.equal(await a.locator('#log li.back').count(), 0, 'forgotten')
+  })
+
   it('no console errors, uncaught exceptions or CSP violations anywhere in the run', () => {
     assert.deepEqual(problems.filter((p) => !/Failed to load resource|net::ERR_INTERNET_DISCONNECTED/.test(p)), [])
   })

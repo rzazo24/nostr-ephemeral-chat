@@ -8,6 +8,7 @@ import { splitLinks } from './linkify'
 import { isRateLimited } from './outbox'
 import * as notify from './notify'
 import { qrDataUrl } from './qr'
+import { forgetRoom, lastRoom, rememberRoom } from './lastroom'
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T
 
@@ -255,6 +256,20 @@ $('help-relay').textContent = relayUrl
 render()
 note(isNew ? t('New room. Copy the link and send it to whoever you like.') : roomKeep ? t('You joined a room. Messages from the last {time} are shown above.', { time: keepText(roomKeep) }) : t('You joined a room. You will only see what is written from now on.'))
 note(roomKeep ? t('This room keeps its messages for {time}: anyone with the link can read them until they expire.', { time: keepText(roomKeep) }) : t('Whoever joins later will not see what came before: nothing is stored.'))
+rememberRoom(roomId, roomName)
+
+// Opened without a room (the installed app always starts like this): offer to go back to the last room that keeps its messages.
+const back = isNew ? lastRoom() : null
+if (back) {
+  const li = document.createElement('li')
+  li.className = 'note back'
+  const go = Object.assign(document.createElement('button'), { type: 'button', textContent: t('Back to {room}', { room: `#${back.name}` }) })
+  const drop = Object.assign(document.createElement('button'), { type: 'button', textContent: t('Forget') })
+  go.addEventListener('click', () => { room.leave(); location.hash = back.id; setTimeout(() => location.reload(), 150) })
+  drop.addEventListener('click', () => { forgetRoom(); li.remove() })
+  li.append(Object.assign(document.createElement('span'), { textContent: t('Your last room that keeps its messages:') }), go, drop)
+  log.append(li)
+}
 
 // The message box grows with what you type (up to a few lines). On a computer Enter sends and Shift+Enter adds a line; on a touch
 // screen Enter adds a line (the Send button sends), as in most phone chats.
