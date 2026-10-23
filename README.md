@@ -8,9 +8,9 @@ Ephemeral Nostr chat: a new random room and a new identity on every visit. Messa
 
 [![Ephemeral chat on a computer and on a phone](docs/screenshot.png)](https://chat.hivescope.xyz)
 
-A tiny web chat on top of a Nostr relay. Every time you open it, you get **a brand-new random room** and **a brand-new identity**. Share the link and whoever opens it is in the same room. Nothing is stored: close the tab and it is gone.
+A tiny web chat on top of a Nostr relay. Every time you open it, you get **a brand-new random room** and **a brand-new identity**. Share the link and whoever opens it is in the same room. By default nothing is stored: close the tab and it is gone. If you want, “New room” can instead create a room that keeps its messages for 24 hours or 7 days, so whoever arrives later can catch up.
 
-It connects to `wss://relay.hivescope.xyz` by default (any relay that accepts ephemeral events works).
+It connects to `wss://relay.hivescope.xyz` by default (any relay that accepts ephemeral events works; rooms that keep their history also need it to store kinds 4201/4203 and honour NIP-40 expiration).
 
 ## How it works
 
@@ -23,7 +23,7 @@ It connects to `wss://relay.hivescope.xyz` by default (any relay that accepts ep
 - **Room**: a random 80-bit id in the URL fragment (`#…`), which browsers never send to any server.
 - **Privacy**: the room id derives (HKDF) an AES-GCM key. Message contents are encrypted with it, and the room tag published to the relay is a SHA-256 hash of the id. The relay operator sees who talks when and how much, but not what, and cannot join a room without the link. It is *not* a substitute for a vetted end-to-end protocol: anyone with the link can read and write, and there is no forward secrecy.
 - **Relay**: the deployed build is pinned to one relay (`VITE_RELAY`, default `wss://relay.hivescope.xyz`), which allows a strict CSP. In development, or when built with `VITE_ALLOW_CUSTOM_RELAY=1`, you can pick another with `?relay=wss://…` or from the footer.
-- **Reactions and emojis**: click ☺+ under a message to react; click your own reaction again to remove it. Late joiners do not see reactions sent before they arrived (nothing is stored). On desktop there is an emoji picker next to the message box; touch devices use their own keyboard.
+- **Reactions and emojis**: click ☺+ under a message to react; click your own reaction again to remove it. Reactions are kept like the room's messages: late joiners see none in an ephemeral room, and all those still valid in a room that keeps its history. On desktop there is an emoji picker next to the message box; touch devices use their own keyboard.
 - **Message box**: grows with what you type; Enter sends and Shift+Enter adds a line on a computer, while on a touch screen Enter adds a line and the Send button sends. A counter appears near the 1000-character limit.
 - **Sending too fast**: the client keeps its own budget under the relay's per-IP limit, drops cosmetic events ("is typing") first, and retries a rejected message for about a minute (shown dimmed as "Waiting for the relay…") before giving the text back with a clear note.
 - **Notifications**: the tab title always shows the unread count. The bell (off by default) adds a sound and, if the browser allows it, a system notification; notifications never contain the message text.
@@ -103,7 +103,8 @@ It takes about four minutes: relays rate-limit per IP, so the script waits betwe
 
 - A relay may rate-limit ephemeral events per IP; a rejected message is shown in the chat.
 - If nobody else is connected, a message reaches nobody (and some relays answer `mute: no one was listening`; this app always listens to its own room, so it does not trigger that).
-- Whoever has the link can read everything written *while they are connected*; nothing is replayed to late joiners.
+- In an ephemeral room, whoever has the link can read everything written *while they are connected*; nothing is replayed to late joiners. In a room that keeps its history, they can also read everything still stored, so treat its link like the history itself.
+- Messages in a room that keeps its history cannot be deleted before they expire, and after reloading you are a new identity: your earlier messages stay under your previous name.
 
 ## License
 

@@ -8,9 +8,9 @@ Chat efímero de Nostr: una sala aleatoria nueva y una identidad nueva en cada v
 
 [![Chat efímero en un ordenador y en un móvil](docs/screenshot.es.png)](https://chat.hivescope.xyz)
 
-Un chat web diminuto sobre un relé de Nostr. Cada vez que lo abres tienes **una sala aleatoria nueva** y **una identidad nueva**. Compartes el enlace y quien lo abra está en la misma sala. No se guarda nada: cierras la pestaña y desaparece.
+Un chat web diminuto sobre un relé de Nostr. Cada vez que lo abres tienes **una sala aleatoria nueva** y **una identidad nueva**. Compartes el enlace y quien lo abra está en la misma sala. Por defecto no se guarda nada: cierras la pestaña y desaparece. Si quieres, «Sala nueva» puede crear en su lugar una sala que guarda sus mensajes 24 horas o 7 días, para que quien llegue después pueda ponerse al día.
 
-Se conecta por defecto a `wss://relay.hivescope.xyz` (vale cualquier relé que acepte eventos efímeros).
+Se conecta por defecto a `wss://relay.hivescope.xyz` (vale cualquier relé que acepte eventos efímeros; las salas que guardan su historial necesitan además que guarde los kinds 4201/4203 y respete la caducidad NIP-40).
 
 ## Cómo funciona
 
@@ -23,7 +23,7 @@ Se conecta por defecto a `wss://relay.hivescope.xyz` (vale cualquier relé que a
 - **Sala**: un id aleatorio de 80 bits en el fragmento de la URL (`#…`), que los navegadores nunca envían a ningún servidor.
 - **Privacidad**: del id de sala se deriva (HKDF) una clave AES-GCM con la que se cifra el contenido, y la etiqueta de sala que se publica en el relé es un hash SHA-256 del id. Quien administra el relé ve quién habla, cuándo y cuánto, pero no qué, y no puede entrar en una sala sin el enlace. **No** sustituye a un protocolo de cifrado extremo a extremo revisado: cualquiera con el enlace puede leer y escribir, y no hay secreto hacia delante.
 - **Relé**: la versión desplegada va fijada a un relé (`VITE_RELAY`, por defecto `wss://relay.hivescope.xyz`), lo que permite una CSP estricta. En desarrollo, o compilando con `VITE_ALLOW_CUSTOM_RELAY=1`, puedes elegir otro con `?relay=wss://…` o desde el pie de página.
-- **Reacciones y emojis**: pulsa ☺+ bajo un mensaje para reaccionar; vuelve a pulsar tu reacción para quitarla. Quien llega tarde no ve las reacciones anteriores (no se guarda nada). En el PC hay un selector de emojis junto a la caja de texto; los dispositivos táctiles usan su propio teclado.
+- **Reacciones y emojis**: pulsa ☺+ bajo un mensaje para reaccionar; vuelve a pulsar tu reacción para quitarla. Las reacciones se guardan igual que los mensajes de la sala: quien llega tarde no ve ninguna en una sala efímera, y ve todas las que sigan vigentes en una que guarda su historial. En el PC hay un selector de emojis junto a la caja de texto; los dispositivos táctiles usan su propio teclado.
 - **Caja de mensajes**: crece según escribes; en un ordenador Intro envía y Mayús+Intro añade una línea, y en una pantalla táctil Intro añade una línea y el botón Enviar envía. Cerca del límite de 1000 caracteres sale un contador.
 - **Enviar demasiado rápido**: el cliente lleva su propio presupuesto por debajo del límite por IP del relé, descarta primero lo cosmético («está escribiendo») y reintenta un mensaje rechazado durante cerca de un minuto (se ve atenuado, «Esperando al relé…») antes de devolverte el texto con un aviso claro.
 - **Notificaciones**: el título de la pestaña siempre muestra los mensajes sin leer. La campana (desactivada por defecto) añade un sonido y, si el navegador lo permite, una notificación del sistema; las notificaciones nunca llevan el texto del mensaje.
@@ -103,7 +103,8 @@ Tarda unos cuatro minutos: los relés limitan por IP, así que el script espera 
 
 - Un relé puede limitar los eventos efímeros por IP; el mensaje rechazado se muestra en el chat.
 - Si no hay nadie más conectado, el mensaje no llega a nadie (y algunos relés contestan `mute: no one was listening`; esta app siempre escucha su propia sala, así que no lo provoca).
-- Quien tenga el enlace puede leer todo lo que se escriba *mientras esté conectado*; a quien llega tarde no se le reenvía nada.
+- En una sala efímera, quien tenga el enlace puede leer todo lo que se escriba *mientras esté conectado*; a quien llega tarde no se le reenvía nada. En una sala que guarda su historial, también puede leer todo lo que siga guardado, así que trata su enlace como el propio historial.
+- Los mensajes de una sala que guarda su historial no se pueden borrar antes de que caduquen, y al recargar eres una identidad nueva: tus mensajes anteriores se quedan con tu nombre anterior.
 
 ## Licencia
 

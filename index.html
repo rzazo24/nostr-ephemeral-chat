@@ -79,7 +79,7 @@
     </form>
 
     <footer>
-      <p data-t="No history: messages are only seen by whoever is in the room right now. Every visit creates a new identity."></p>
+      <p data-t="By default nothing is stored: messages are only seen by whoever is in the room right now. Every visit creates a new identity."></p>
       <p><span data-t="Relay:"></span> <a id="relay-link" href="#"></a> ·
         <a href="https://github.com/rzazo24/nostr-ephemeral-chat" rel="noopener noreferrer" data-t="Source code"></a></p>
     </footer>
@@ -90,19 +90,19 @@
     <p data-t="Every time you open the chat you get a brand-new random room and a brand-new identity (a random name like calm-otter-42)."></p>
     <p data-t="The room has a short name (like kfm-7xq-d4p) that everyone in it sees. It is only a label: what gives access is the link."></p>
     <p data-t="Copy the link with “Copy link” and send it to whoever you want: everyone who opens it is in the same room."></p>
-    <p data-t="“New room” leaves this room and starts another one with a different link."></p>
+    <p data-t="“New room” leaves this room and starts another one with a different link. It asks first whether the new room keeps its messages: ephemeral (nothing is stored, the default), 24 hours or 7 days."></p>
     <p data-t="Use “Share” (phones) or “QR code” to pass the link to someone next to you."></p>
     <p data-t="On a computer, Enter sends and Shift+Enter adds a new line. On a phone, Enter adds a new line and the Send button sends. A message can have up to 1000 characters."></p>
     <h3 data-t="Privacy"></h3>
     <p data-t="Messages are encrypted with a key that lives in the part of the link after the #. Browsers never send that part to any server, so the relay only sees scrambled text."></p>
     <p data-t="The relay can still see that someone is connected, when they write and how much, but not what."></p>
-    <p data-t="Anyone who has the link can read and write in the room, so share it only with people you trust. There is no way to remove someone: start a new room instead."></p>
-    <h3 data-t="Nothing is stored"></h3>
-    <p data-t="There is no history. You only see what is written while you are connected, and whoever joins later sees nothing from before."></p>
-    <p data-t="Unless you choose otherwise: “New room” can also create a room that keeps its messages for 24 hours or 7 days. Its link says so, the room shows it next to its name, and whoever opens the link later can read them until they expire. The relay stores them encrypted and deletes them when they expire."></p>
-    <p data-t="Closing or reloading the tab gives you a new identity. Reloading keeps the room, because the room is in the link."></p>
+    <p data-t="Anyone who has the link can read and write in the room (and, in a room that keeps its messages, read everything still stored), so share it only with people you trust. There is no way to remove someone: start a new room instead."></p>
+    <h3 data-t="History"></h3>
+    <p data-t="In an ephemeral room (the default) there is no history: you only see what is written while you are connected, and whoever joins later sees nothing from before."></p>
+    <p data-t="A room created to keep its messages (24 hours or 7 days) says so next to its name, and its link ends in -24h or -7d. Whoever opens the link later reads what is still there: each message expires 24 hours or 7 days after it was sent. The relay stores them encrypted and deletes them when they expire; they cannot be deleted before."></p>
+    <p data-t="Closing or reloading the tab gives you a new identity. Reloading keeps the room, because the room is in the link. In a room that keeps its messages, what you wrote before stays, under your previous name."></p>
     <h3 data-t="Reactions and emojis"></h3>
-    <p data-t="Press ☺+ under a message to react with 👍 ❤️ 😂 😮 😢 or 🙏. Press your own reaction again to remove it. Like messages, reactions are not stored."></p>
+    <p data-t="Press ☺+ under a message to react with 👍 ❤️ 😂 😮 😢 or 🙏. Press your own reaction again to remove it. Reactions are kept exactly like the room’s messages: not at all in an ephemeral room, until they expire in one that keeps them."></p>
     <p data-t="On a computer, the 😊 button next to the message box opens an emoji picker. On a phone, use your keyboard’s emojis."></p>
     <h3 data-t="Notifications, links and typing"></h3>
     <p data-t="The bell turns on a sound and, if your browser allows it, a notification when a message arrives while you are on another tab. Notifications never include the message text. The tab title always shows how many messages you have not seen."></p>
