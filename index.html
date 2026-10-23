@@ -51,18 +51,20 @@
         <summary id="people-summary"></summary>
         <ul id="online"></ul>
       </details>
-      <div class="actions">
-        <button id="share" type="button" data-t="Copy link"></button>
-        <button id="share-native" type="button" data-t="Share" hidden></button>
-        <button id="qr-btn" type="button" data-t="QR code"></button>
-        <button id="install" type="button" data-t="Install app" hidden></button>
-        <button id="new" type="button" data-t="New room" aria-haspopup="menu" aria-expanded="false"></button>
-      </div>
-      <div id="new-menu" class="new-menu" role="menu" hidden>
-        <span class="muted" data-t="Keep messages:"></span>
-        <button type="button" role="menuitem" data-keep="0" data-t="No" data-t-title="Ephemeral: nothing is stored"></button>
-        <button type="button" role="menuitem" data-keep="86400" data-t="24 h" data-t-title="Keep messages 24 hours"></button>
-        <button type="button" role="menuitem" data-keep="604800" data-t="7 days" data-t-title="Keep messages 7 days"></button>
+      <div class="actions-col">
+        <div class="actions">
+          <button id="share" type="button" data-t="Copy link"></button>
+          <button id="share-native" type="button" data-t="Share" hidden></button>
+          <button id="qr-btn" type="button" data-t="QR code"></button>
+          <button id="install" type="button" data-t="Install app" hidden></button>
+          <button id="new" type="button" data-t="New room" aria-haspopup="menu" aria-expanded="false"></button>
+        </div>
+        <div id="new-menu" class="new-menu" role="menu" hidden>
+          <span class="muted" data-t="Keep messages:"></span>
+          <button type="button" role="menuitem" data-keep="0" data-t="No" data-t-title="Ephemeral: nothing is stored"></button>
+          <button type="button" role="menuitem" data-keep="86400" data-t="24 h" data-t-title="Keep messages 24 hours"></button>
+          <button type="button" role="menuitem" data-keep="604800" data-t="7 days" data-t-title="Keep messages 7 days"></button>
+        </div>
       </div>
     </section>
 

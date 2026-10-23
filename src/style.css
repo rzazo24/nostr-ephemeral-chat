@@ -190,5 +190,11 @@ button.primary.flash { box-shadow: 0 0 0 3px rgba(45, 212, 191, .35) !important 
 #emoji-panel button.flash { box-shadow: none !important } /* the picker is a grid of borderless emojis: no halo */
 #log li.pending { opacity:.6 } /* a message still on its way (or being retried) */
 .keep { color:#fbbf24; opacity:.8; font-size:.85em } /* same amber as the room: it is a property of the room */
-.new-menu { flex-basis:100%; display:flex; align-items:center; justify-content:flex-end; gap:6px; font-size:.85rem }
-.new-menu button { min-height:32px; padding:0 10px }
+/* the "New room" chooser: one compact line centred right under the action buttons (they form one block), phone and computer alike */
+.actions-col { margin-left:auto; display:flex; flex-direction:column; gap:6px; min-width:0 }
+.actions-col .actions { margin-left:0 }
+.new-menu { display:flex; align-items:center; justify-content:center; gap:6px; font-size:.85rem; white-space:nowrap }
+.new-menu[hidden] { display:none }
+#bar .new-menu button { flex:0 0 auto; min-height:32px; padding:0 10px; font-size:inherit; line-height:1 }
+@media (max-width:520px) { .actions-col { margin-left:0; width:100% } }
+@media (max-width:400px) { .new-menu { flex-wrap:wrap } .new-menu > span { flex-basis:100%; text-align:center } }
