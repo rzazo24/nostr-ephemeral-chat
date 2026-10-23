@@ -42,7 +42,7 @@
 
     <section id="bar" class="card">
       <div class="who">
-        <span class="muted" data-t="Room:"></span> <b id="room-name"></b>
+        <span class="muted" data-t="Room:"></span> <b id="room-name"></b> <span id="room-keep" class="keep" hidden></span>
       </div>
       <div class="who">
         <span class="muted" data-t="You:"></span> <b id="me"></b>
@@ -56,7 +56,12 @@
         <button id="share-native" type="button" data-t="Share" hidden></button>
         <button id="qr-btn" type="button" data-t="QR code"></button>
         <button id="install" type="button" data-t="Install app" hidden></button>
-        <button id="new" type="button" data-t="New room"></button>
+        <button id="new" type="button" data-t="New room" aria-haspopup="menu" aria-expanded="false"></button>
+      </div>
+      <div id="new-menu" class="new-menu" role="menu" hidden>
+        <button type="button" role="menuitem" data-keep="0" data-t="Ephemeral: nothing is stored"></button>
+        <button type="button" role="menuitem" data-keep="86400" data-t="Keep messages 24 hours"></button>
+        <button type="button" role="menuitem" data-keep="604800" data-t="Keep messages 7 days"></button>
       </div>
     </section>
 
@@ -94,6 +99,7 @@
     <p data-t="Anyone who has the link can read and write in the room, so share it only with people you trust. There is no way to remove someone: start a new room instead."></p>
     <h3 data-t="Nothing is stored"></h3>
     <p data-t="There is no history. You only see what is written while you are connected, and whoever joins later sees nothing from before."></p>
+    <p data-t="Unless you choose otherwise: “New room” can also create a room that keeps its messages for 24 hours or 7 days. Its link says so, the room shows it next to its name, and whoever opens the link later can read them until they expire. The relay stores them encrypted and deletes them when they expire."></p>
     <p data-t="Closing or reloading the tab gives you a new identity. Reloading keeps the room, because the room is in the link."></p>
     <h3 data-t="Reactions and emojis"></h3>
     <p data-t="Press ☺+ under a message to react with 👍 ❤️ 😂 😮 😢 or 🙏. Press your own reaction again to remove it. Like messages, reactions are not stored."></p>

@@ -1,7 +1,7 @@
 import './style.css'
 import { joinRoom } from './chat'
 import { getLang, setLang, t, type Lang } from './i18n'
-import { randomRoomId, validRoomId } from './names'
+import { keepOf, randomRoomId, validRoomId, type Keep } from './names'
 import { Reactions, REACTIONS, type Reaction } from './reactions'
 import { EMOJIS } from './emojis'
 import { splitLinks } from './linkify'
@@ -106,7 +106,10 @@ function render() {
   $('online').replaceChildren(...people.map((p) => Object.assign(document.createElement('li'), { textContent: p.mine ? `${p.nick} ${t('(you)')}` : p.nick, className: p.mine ? 'me' : '' })))
   document.querySelectorAll<HTMLElement>('[data-lang]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === getLang())))
   if (CUSTOM_RELAY) $('relay-link').title = t('Change relay')
+  $('room-keep').hidden = !roomKeep
+  $('room-keep').textContent = roomKeep ? t('history: {time}', { time: keepText(roomKeep) }) : ''
 }
+const keepText = (k: Keep) => (k === 86400 ? t('24 hours') : t('7 days'))
 
 // Relay reasons come in English; the few we generate ourselves are translated.
 const KNOWN = ['connection lost', 'not connected', 'no answer from the relay', 'the relay rejected it'] as const
@@ -122,10 +125,13 @@ const reactions = new Reactions()
 const bubbles = new Map<string, HTMLElement>() // message id -> its reactions bar
 let me = ''
 let roomName = ''
+const roomKeep: Keep = keepOf(roomId)
 
-function addLine(cls: string, nick: string, text: string, at: number, id?: string) {
+/** `old`: a message from the room's history, placed in time order before whatever is newer (the notes shown on arrival included). */
+function addLine(cls: string, nick: string, text: string, at: number, id?: string, old = false) {
   const li = document.createElement('li')
   li.className = cls
+  li.dataset.at = String(at)
   const who = document.createElement('b')
   who.textContent = nick
   const body = document.createElement('span')
@@ -151,7 +157,9 @@ function addLine(cls: string, nick: string, text: string, at: number, id?: strin
     renderReactions(id)
   }
   const stick = log.scrollHeight - log.scrollTop - log.clientHeight < 60
-  log.append(li)
+  const later = old ? [...log.children].find((x) => Number((x as HTMLElement).dataset.at) > at) : undefined
+  if (later) log.insertBefore(li, later)
+  else log.append(li)
   while (log.children.length > 500) {
     const first = log.firstElementChild as HTMLElement
     for (const [k, v] of bubbles) if (first.contains(v)) bubbles.delete(k)
@@ -219,6 +227,7 @@ const note = (text: string) => addLine('note', '', text, Date.now())
 const room = await joinRoom(roomId, relayUrl, {
   onStatus: (s) => { state = s; render() },
   onMessage: (m) => {
+    if (m.old) return addLine(m.mine ? 'mine' : 'other', m.nick, m.text, m.at, m.id, true) // history: no notification
     if (m.mine) { const p = pendingLines.find((x) => x.text === m.text.trim()); if (p) dropPending(p) }
     addLine(m.mine ? 'mine' : 'other', m.nick, m.text, m.at, m.id)
     if (m.mine || !away()) return
@@ -244,8 +253,8 @@ people = [{ nick: room.nick, mine: true }]
 $('relay-link').textContent = relayUrl.replace(/^wss?:\/\//, '')
 $('help-relay').textContent = relayUrl
 render()
-note(isNew ? t('New room. Copy the link and send it to whoever you like.') : t('You joined a room. You will only see what is written from now on.'))
-note(t('Whoever joins later will not see what came before: nothing is stored.'))
+note(isNew ? t('New room. Copy the link and send it to whoever you like.') : roomKeep ? t('You joined a room. Messages from the last {time} are shown above.', { time: keepText(roomKeep) }) : t('You joined a room. You will only see what is written from now on.'))
+note(roomKeep ? t('This room keeps its messages for {time}: anyone with the link can read them until they expire.', { time: keepText(roomKeep) }) : t('Whoever joins later will not see what came before: nothing is stored.'))
 
 // The message box grows with what you type (up to a few lines). On a computer Enter sends and Shift+Enter adds a line; on a touch
 // screen Enter adds a line (the Send button sends), as in most phone chats.
@@ -330,11 +339,16 @@ $('share').addEventListener('click', async () => {
   setTimeout(render, 1500)
 })
 
-$('new').addEventListener('click', () => {
+// "New room" asks how long the new room keeps its messages (ephemeral first, as always); the choice goes in the new link.
+const newMenu = $('new-menu')
+const showNewMenu = (open: boolean) => { newMenu.hidden = !open; $('new').setAttribute('aria-expanded', String(open)) }
+$('new').addEventListener('click', () => showNewMenu(newMenu.hidden !== false))
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !newMenu.hidden) showNewMenu(false) })
+newMenu.querySelectorAll<HTMLButtonElement>('[data-keep]').forEach((b) => b.addEventListener('click', () => {
   room.leave()
-  location.hash = ''
+  location.hash = randomRoomId(Number(b.dataset.keep) as Keep)
   setTimeout(() => location.reload(), 150)
-})
+}))
 
 document.querySelectorAll<HTMLElement>('[data-lang]').forEach((b) => b.addEventListener('click', () => { setLang(b.dataset.lang as Lang); render() }))
 

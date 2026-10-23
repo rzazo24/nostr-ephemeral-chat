@@ -8,8 +8,10 @@ export interface RelayClient {
 
 export function connectRelay(opts: {
   url: string
-  filter: Filter
+  filters: Filter[]
   onEvent: (ev: Event) => void
+  /** The relay has sent everything it had stored for the subscription (after each (re)connection); what follows is live. */
+  onEose?: () => void
   onStatus: (s: 'connecting' | 'open' | 'closed') => void
 }): RelayClient {
   let ws: WebSocket | null = null
@@ -26,12 +28,13 @@ export function connectRelay(opts: {
     sock.onopen = () => {
       retry = 0
       opts.onStatus('open')
-      sock.send(JSON.stringify(['REQ', 'sala', opts.filter]))
+      sock.send(JSON.stringify(['REQ', 'sala', ...opts.filters]))
     }
     sock.onmessage = (m) => {
       let msg: unknown[]
       try { msg = JSON.parse(String(m.data)) } catch { return }
       if (msg[0] === 'EVENT' && msg[2]) opts.onEvent(msg[2] as Event)
+      else if (msg[0] === 'EOSE') opts.onEose?.()
       else if (msg[0] === 'OK') { waiting.get(String(msg[1]))?.({ ok: msg[2] === true, reason: String(msg[3] ?? '') }); waiting.delete(String(msg[1])) }
     }
     sock.onclose = () => {

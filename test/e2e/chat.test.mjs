@@ -321,6 +321,27 @@ describe('ephemeral chat', () => {
     assert.equal(await a.locator('#update').isHidden(), true)
   })
 
+  it('"New room" asks how long it keeps messages; a 24 h room says so and whoever arrives later reads what came before', async () => {
+    const a = await open(normal)
+    await online(a)
+    assert.equal(await a.locator('#room-keep').isVisible(), false, 'an ephemeral room shows no history badge')
+    await a.click('#new')
+    assert.equal(await a.locator('#new-menu').isVisible(), true)
+    await Promise.all([a.waitForEvent('load'), a.click('#new-menu [data-keep="86400"]')])
+    await online(a)
+    assert.match(a.url(), /-24h$/)
+    assert.match(await a.locator('#room-keep').innerText(), /24 hours/)
+    await say(a, 'for whoever comes later')
+    await a.waitForFunction(() => [...document.querySelectorAll('#log li.mine span')].some((s) => s.textContent === 'for whoever comes later'), null, { timeout: 15000 })
+    const url = a.url()
+    await a.context().close()
+    const b = await open(normal, { url })
+    await theirs(b, 'for whoever comes later')
+    // history goes above the notes shown on arrival, which tell what kind of room this is
+    const lines = await b.locator('#log li').allInnerTexts()
+    assert.ok(lines.findIndex((l) => l.includes('for whoever comes later')) < lines.findIndex((l) => l.includes('keeps its messages')), lines.join(' | '))
+  })
+
   it('no console errors, uncaught exceptions or CSP violations anywhere in the run', () => {
     assert.deepEqual(problems.filter((p) => !/Failed to load resource|net::ERR_INTERNET_DISCONNECTED/.test(p)), [])
   })

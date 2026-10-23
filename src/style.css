@@ -189,3 +189,5 @@ button.flash { border-color: var(--accent) !important; box-shadow: 0 0 0 3px rgb
 button.primary.flash { box-shadow: 0 0 0 3px rgba(45, 212, 191, .35) !important }
 #emoji-panel button.flash { box-shadow: none !important } /* the picker is a grid of borderless emojis: no halo */
 #log li.pending { opacity:.6 } /* a message still on its way (or being retried) */
+.keep { color:#fbbf24; opacity:.8; font-size:.85em } /* same amber as the room: it is a property of the room */
+.new-menu { flex-basis:100%; display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px }

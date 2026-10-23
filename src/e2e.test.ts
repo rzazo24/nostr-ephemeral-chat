@@ -54,4 +54,34 @@ describe.skipIf(!RELAY)('two people in a room', () => {
     expect(reacts).toContain('👍-')
     ;[a, b, c].forEach((x) => x.leave())
   }, 30000)
+
+  it('a room that keeps 24 h: whoever arrives later sees the messages and reactions from before, marked as old', async () => {
+    const room = randomRoomId(86400)
+    const gotA: string[] = []
+    const a = await join(room, gotA, [])
+    await new Promise((r) => setTimeout(r, 500))
+    expect(await a.say('kept for later')).toBeNull()
+    await until(() => gotA.length >= 1)
+    expect(await a.react(ids.get('kept for later')!, '❤️', true)).toBeNull()
+    a.leave()
+    const late: { text: string; old: boolean }[] = [], lateReacts: string[] = []
+    const b = await joinRoom(room, RELAY!, {
+      onMessage: (m) => late.push({ text: m.text, old: m.old }),
+      onTyping: () => {}, onRoster: () => {}, onStatus: () => {},
+      onReaction: (r) => lateReacts.push(`${r.emoji}${r.on ? '+' : '-'}`),
+    })
+    await until(() => late.length >= 1 && lateReacts.length >= 1)
+    expect(late).toEqual([{ text: 'kept for later', old: true }])
+    expect(lateReacts).toEqual(['❤️+'])
+    // an ephemeral room never shows anything from before
+    const eph = randomRoomId(), early = await join(eph, [], [])
+    await new Promise((r) => setTimeout(r, 500))
+    expect(await early.say('gone')).toBeNull()
+    early.leave()
+    const seenLate: string[] = []
+    const c = await join(eph, seenLate, [])
+    await new Promise((r) => setTimeout(r, 1500))
+    expect(seenLate).toEqual([])
+    ;[b, c].forEach((x) => x.leave())
+  }, 30000)
 })

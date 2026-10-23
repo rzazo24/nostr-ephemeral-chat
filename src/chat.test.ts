@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { decrypt, encrypt, roomKey, topicOf } from './crypto'
-import { nickFromPubkey, randomRoomId, roomNameFromTopic, validRoomId } from './names'
+import { keepOf, nickFromPubkey, randomRoomId, roomNameFromTopic, validRoomId } from './names'
 import { ONLINE_FOR_MS, Roster } from './roster'
 
 describe('crypto', () => {
@@ -27,6 +27,12 @@ describe('names', () => {
     expect(r).not.toBe(randomRoomId())
     expect(validRoomId('x')).toBe(false)
     expect(validRoomId('<script>')).toBe(false)
+    // how long a room keeps its messages travels in the link, as part of the id (so editing it opens another room)
+    expect(keepOf(r)).toBe(0)
+    const day = randomRoomId(86400), week = randomRoomId(604800)
+    expect(day.endsWith('-24h') && validRoomId(day) && keepOf(day) === 86400).toBe(true)
+    expect(week.endsWith('-7d') && validRoomId(week) && keepOf(week) === 604800).toBe(true)
+    expect(validRoomId(r + '-30d')).toBe(false)
   })
   it('room name is stable, readable and derived only from the topic', () => {
     const topic = 'a1b2c3d4e5f6'.padEnd(32, '0')
