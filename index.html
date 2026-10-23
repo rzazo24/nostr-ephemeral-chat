@@ -59,9 +59,10 @@
         <button id="new" type="button" data-t="New room" aria-haspopup="menu" aria-expanded="false"></button>
       </div>
       <div id="new-menu" class="new-menu" role="menu" hidden>
-        <button type="button" role="menuitem" data-keep="0" data-t="Ephemeral: nothing is stored"></button>
-        <button type="button" role="menuitem" data-keep="86400" data-t="Keep messages 24 hours"></button>
-        <button type="button" role="menuitem" data-keep="604800" data-t="Keep messages 7 days"></button>
+        <span class="muted" data-t="Keep messages:"></span>
+        <button type="button" role="menuitem" data-keep="0" data-t="No" data-t-title="Ephemeral: nothing is stored"></button>
+        <button type="button" role="menuitem" data-keep="86400" data-t="24 h" data-t-title="Keep messages 24 hours"></button>
+        <button type="button" role="menuitem" data-keep="604800" data-t="7 days" data-t-title="Keep messages 7 days"></button>
       </div>
     </section>
 
