@@ -199,3 +199,20 @@ button.primary.flash { box-shadow: 0 0 0 3px rgba(45, 212, 191, .35) !important 
 @media (max-width:520px) { .actions-col { margin-left:0; width:100% } }
 @media (max-width:400px) { .new-menu { flex-wrap:wrap } .new-menu > span { flex-basis:100%; text-align:center } }
 #log li.note.back { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:6px } #log li.note.back button { min-height:32px; padding:0 10px; font-size:inherit }
+/* Phones on their side: very little height. Header, room bar and message box get compact so the messages keep some room and nothing
+   at the bottom is cut (the installed app also loses the home-indicator inset there); the footer goes (it is in the help too). */
+@media (orientation: landscape) and (max-height: 500px) {
+  main { padding: 6px 12px 4px; gap: 6px }
+  .hero { gap: 8px }
+  .icon { display: none }
+  h1 { font-size: 1rem }
+  .hero .status { margin: 0 }
+  .lang button, .help-btn, #bell { min-height: 30px }
+  #bar { padding: 6px 12px; gap: 4px 12px; font-size: .85rem }
+  #bar .actions { gap: 6px }
+  #bar .actions button { min-height: 32px; padding: 0 10px; font-size: .85rem }
+  #log { min-height: 72px }
+  #text { min-height: 40px; padding: 8px 12px }
+  #form button { min-height: 40px }
+  footer { display: none }
+}
