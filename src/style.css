@@ -224,3 +224,8 @@ button.primary.flash { box-shadow: 0 0 0 3px rgba(45, 212, 191, .35) !important 
   #bar .actions:has(#install:not([hidden])) { flex-wrap: wrap } /* in the browser, with "Install app" too: five do not fit, two rows (the installed app has four) */
   #bar .actions button { flex: 1 1 auto; min-width: 0; padding: 0 6px; font-size: .8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
 }
+
+/* Installed on an iPhone (black-translucent status bar), iOS reports a page shorter than the screen by about the status bar's height, so a body
+   sized by 100dvh/100% stopped well above the bottom and left the message box floating. Pinned to the four edges it fills the real screen (as in
+   Quill); the bottom padding above keeps it clear of the home indicator. */
+html.standalone body { position: fixed; inset: 0; height: auto }
