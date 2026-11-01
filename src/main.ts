@@ -389,7 +389,19 @@ if (CUSTOM_RELAY) {
 
 // Help dialog (native <dialog>: Escape closes it; a click on the backdrop does too).
 const help = $<HTMLDialogElement>('help')
-$('help-btn').addEventListener('click', () => { help.showModal(); help.focus({ preventScroll: true }) })
+// TEMPORARY (2026-11-01): the iPhone app's message box sits too high; these measures, shown in Help, say where the gap comes from. Remove after.
+function diag(): string {
+  const probe = document.createElement('div')
+  probe.style.cssText = 'position:fixed;top:0;left:0;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0;visibility:hidden'
+  document.body.append(probe); const cs = getComputedStyle(probe); const top = cs.paddingTop, bottom = cs.paddingBottom; probe.remove()
+  const r = (id: string) => document.getElementById(id)?.getBoundingClientRect()
+  const f = r('form'), m = document.querySelector('main')!.getBoundingClientRect(), b = document.body.getBoundingClientRect()
+  const ms = getComputedStyle(document.querySelector('main')!), bs = getComputedStyle(document.body)
+  return [`screen ${screen.width}x${screen.height}`, `inner ${innerWidth}x${innerHeight}`, `vv ${Math.round(visualViewport?.height ?? 0)}`, `safe ${top}/${bottom}`,
+    `body ${Math.round(b.top)}-${Math.round(b.bottom)} pb ${bs.paddingBottom}`, `main -${Math.round(m.bottom)} pb ${ms.paddingBottom}`, `form ${Math.round(f?.top ?? 0)}-${Math.round(f?.bottom ?? 0)}`,
+    `standalone ${document.documentElement.classList.contains('standalone')}`].join(' · ')
+}
+$('help-btn').addEventListener('click', () => { $('help-diag').textContent = diag(); help.showModal(); help.focus({ preventScroll: true }) })
 $('help-close').addEventListener('click', () => help.close())
 help.addEventListener('click', (e) => { if (e.target === help) help.close() })
 
