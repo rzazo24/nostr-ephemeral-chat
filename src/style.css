@@ -229,4 +229,3 @@ button.primary.flash { box-shadow: 0 0 0 3px rgba(45, 212, 191, .35) !important 
    sized by 100dvh/100% stopped well above the bottom and left the message box floating. Pinned to the four edges it fills the real screen (as in
    Quill); the bottom padding above keeps it clear of the home indicator. */
 html.standalone body { position: fixed; inset: 0; height: auto }
-html.standalone body { bottom: calc(-1 * var(--screen-gap, 0px)) }
