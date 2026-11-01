@@ -178,6 +178,18 @@ describe('ephemeral chat', () => {
     } finally { await stack.stop() }
   })
 
+  it('Back to a room that keeps its messages opens it as a new page, with the message box on screen and a clean address', async () => {
+    const room = 'backtest' + Date.now().toString(36) + '-24h'
+    const a = await open(normal, { device: 'Pixel 7', url: `${normal.appUrl}#${room}` })
+    await online(a)
+    await a.goto(normal.appUrl); await online(a)
+    await a.click('li.note.back button')
+    await a.waitForFunction((r) => location.hash === `#${r}` && !location.search.includes('back='), room, { timeout: 15000 })
+    await online(a)
+    const box = await a.evaluate(() => { const f = document.getElementById('form').getBoundingClientRect(); return { top: f.top, bottom: f.bottom, vh: innerHeight } })
+    assert.ok(box.bottom <= box.vh && box.top > 0, `the message box is on screen: ${JSON.stringify(box)}`)
+  })
+
   it('too fast and it never gets through: after about a minute, a clear message in the user language, and the text is given back', async () => {
     const stack = await startStack({}, { stub: { rejectFirst: Infinity } })
     try {

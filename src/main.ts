@@ -21,6 +21,8 @@ const relayUrl = (() => {
   return CUSTOM_RELAY && r && /^wss?:\/\/\S+$/.test(r) ? r : DEFAULT_RELAY
 })()
 
+// "Back to a room" opens it as a new address (?back=…): take that marker out of the address again, keeping anything else in it
+{ const q = new URLSearchParams(location.search); if (q.has('back')) { q.delete('back'); const rest = q.toString(); history.replaceState(null, '', `${location.pathname}${rest ? `?${rest}` : ''}${location.hash}`) } }
 // Room: it lives in the fragment (#room) so it never reaches any server. Without a valid room a new one is created.
 let roomId = location.hash.slice(1)
 const isNew = !validRoomId(roomId)
@@ -265,7 +267,9 @@ if (back) {
   li.className = 'note back'
   const go = Object.assign(document.createElement('button'), { type: 'button', textContent: t('Back to {room}', { room: `#${back.name}` }) })
   const drop = Object.assign(document.createElement('button'), { type: 'button', textContent: t('Forget') })
-  go.addEventListener('click', () => { room.leave(); location.hash = back.id; setTimeout(() => location.reload(), 150) })
+  // a fresh page for the room, not this one reloaded: on some Android phones (an installed app on a Xiaomi) a reload kept a wrong screen height
+  // and the message box ended up off screen. The ?back query only makes it a new address; it is removed again once the page is up.
+  go.addEventListener('click', () => { room.leave(); location.replace(`${location.pathname}?back=${Date.now()}#${back.id}`) })
   drop.addEventListener('click', () => { forgetRoom(); li.remove() })
   li.append(Object.assign(document.createElement('span'), { textContent: t('Your last room that keeps its messages:') }), go, drop)
   log.append(li)
