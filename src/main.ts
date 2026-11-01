@@ -83,6 +83,16 @@ document.addEventListener('click', (e) => {
 
 // Running as an installed app (home-screen icon): the CSS drops the footer and trims the bottom margin.
 if (matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone) document.documentElement.classList.add('standalone')
+// Installed on an iPhone, iOS gives the page the screen's height minus the status bar (measured: 797 of 844) while the page is drawn from the very
+// top, so the bottom 47 points stayed outside it, under the message box. The page is stretched by that difference (measured here, on this phone).
+function fitScreen(): void {
+  const html = document.documentElement
+  if (!html.classList.contains('standalone')) return
+  const tall = innerHeight >= innerWidth ? Math.max(screen.height, screen.width) : Math.min(screen.height, screen.width)
+  const gap = tall - innerHeight
+  html.style.setProperty('--screen-gap', `${gap > 20 && gap < 120 ? gap : 0}px`)
+}
+fitScreen(); addEventListener('resize', fitScreen)
 
 const log = $<HTMLUListElement>('log')
 const statusEl = $('status')
@@ -399,7 +409,7 @@ function diag(): string {
   const ms = getComputedStyle(document.querySelector('main')!), bs = getComputedStyle(document.body)
   return [`screen ${screen.width}x${screen.height}`, `inner ${innerWidth}x${innerHeight}`, `vv ${Math.round(visualViewport?.height ?? 0)}`, `safe ${top}/${bottom}`,
     `body ${Math.round(b.top)}-${Math.round(b.bottom)} pb ${bs.paddingBottom}`, `main -${Math.round(m.bottom)} pb ${ms.paddingBottom}`, `form ${Math.round(f?.top ?? 0)}-${Math.round(f?.bottom ?? 0)}`,
-    `standalone ${document.documentElement.classList.contains('standalone')}`].join(' · ')
+    `standalone ${document.documentElement.classList.contains('standalone')}`, `gap ${getComputedStyle(document.documentElement).getPropertyValue('--screen-gap')}`].join(' · ')
 }
 $('help-btn').addEventListener('click', () => { $('help-diag').textContent = diag(); help.showModal(); help.focus({ preventScroll: true }) })
 $('help-close').addEventListener('click', () => help.close())
