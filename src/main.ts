@@ -95,12 +95,15 @@ let bell = notify.isOn()
 const STATUS = { connecting: 'connecting…', open: 'connected', closed: 'reconnecting…' } as const
 
 /** (Re)writes every text that depends on the language. */
+const narrow = matchMedia('(max-width: 520px)')
+narrow.addEventListener('change', () => render())
 function render() {
   document.documentElement.lang = getLang()
   const base = roomName ? `#${roomName} · ${t('Ephemeral chat')}` : t('Ephemeral chat')
   document.title = unread ? `(${unread}) ${base}` : base
   $('bell').setAttribute('aria-pressed', String(bell))
-  document.querySelectorAll<HTMLElement>('[data-t]').forEach((el) => (el.textContent = t(el.dataset.t as never)))
+  // on a phone the room's buttons sit on one row: those with a short label (data-t-short) use it there, with the full one as their accessible name
+  document.querySelectorAll<HTMLElement>('[data-t]').forEach((el) => { const short = narrow.matches && el.dataset.tShort; el.textContent = t((short || el.dataset.t) as never); if (el.dataset.tShort) { if (short) el.setAttribute('aria-label', t(el.dataset.t as never)); else el.removeAttribute('aria-label') } })
   document.querySelectorAll<HTMLElement>('[data-t-title]').forEach((el) => { el.title = t(el.dataset.tTitle as never); el.setAttribute('aria-label', el.title) })
   document.querySelectorAll<HTMLInputElement>('[data-t-placeholder]').forEach((el) => (el.placeholder = t(el.dataset.tPlaceholder as never)))
   statusText.textContent = t(STATUS[state])

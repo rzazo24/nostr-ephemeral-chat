@@ -216,3 +216,11 @@ button.primary.flash { box-shadow: 0 0 0 3px rgba(45, 212, 191, .35) !important 
   #form button { min-height: 40px }
   footer { display: none }
 }
+
+/* Phones: the room's buttons on ONE row (they wrapped into two, and on some Android phones, an installed app on a Xiaomi, the taller card left
+   the message box off screen). Each button takes an equal share, the labels a little smaller; a label that still does not fit is cut with "…". */
+@media (max-width: 520px) {
+  #bar .actions { display: flex; flex-wrap: nowrap; gap: 6px; width: 100% }
+  #bar .actions:has(#install:not([hidden])) { flex-wrap: wrap } /* in the browser, with "Install app" too: five do not fit, two rows (the installed app has four) */
+  #bar .actions button { flex: 1 1 auto; min-width: 0; padding: 0 6px; font-size: .8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+}
