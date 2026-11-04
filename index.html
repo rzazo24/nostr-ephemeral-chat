@@ -67,6 +67,7 @@
             <input id="join-input" type="text" inputmode="url" autocapitalize="off" spellcheck="false" enterkeyhint="go" data-t-placeholder="Or paste a room link" data-t-title="Room link">
             <button type="submit" data-t="Join"></button>
           </form>
+          <button type="button" id="scan-btn" class="scan-btn" data-t="Scan QR" hidden></button>
           <span id="join-error" class="join-error" role="alert" hidden></span>
         </div>
       </div>
@@ -108,7 +109,7 @@
     <p data-t="In an ephemeral room (the default) there is no history: you only see what is written while you are connected, and whoever joins later sees nothing from before."></p>
     <p data-t="A room created to keep its messages (24 hours or 7 days) says so next to its name, and its link ends in -24h or -7d. Whoever opens the link later reads what is still there: each message expires 24 hours or 7 days after it was sent. The relay stores them encrypted and deletes them when they expire; they cannot be deleted before."></p>
     <p data-t="If you open the chat without a link (the installed app always does), it offers to go back to your last room that keeps its messages, while they can still be there. That is remembered only on this device; “Forget” removes it."></p>
-    <p data-t="To enter a room someone sent you from the installed app (on iPhone a tapped link opens Safari), paste its link in “New room” and tap Join. Only links of this chat are accepted."></p>
+    <p data-t="To enter a room someone sent you from the installed app (on iPhone a tapped link opens Safari), paste its link in “New room” and tap Join, or tap Scan QR and point the camera at the QR the other phone shows. Only links of this chat are accepted, and the camera picture never leaves your device."></p>
     <p data-t="Closing or reloading the tab gives you a new identity. Reloading keeps the room, because the room is in the link. In a room that keeps its messages, what you wrote before stays, under your previous name."></p>
     <h3 data-t="Reactions and emojis"></h3>
     <p data-t="Press ☺+ under a message to react with 👍 ❤️ 😂 😮 😢 or 🙏. Press your own reaction again to remove it. Reactions are kept exactly like the room’s messages: not at all in an ephemeral room, until they expire in one that keeps them."></p>
@@ -130,6 +131,11 @@
     <div class="help-head"><h2 id="qr-title" data-t="QR code"></h2><button type="button" id="qr-close" data-t="Close"></button></div>
     <img id="qr-img" alt="" width="320" height="320">
     <p data-t="Scan it to join this room. Show it only to people next to you."></p>
+  </dialog>
+  <dialog id="scan" aria-labelledby="scan-title" tabindex="-1" autofocus>
+    <div class="help-head"><h2 id="scan-title" data-t="Scan QR"></h2><button type="button" id="scan-close" data-t="Cancel"></button></div>
+    <video id="scan-video" playsinline muted></video>
+    <p data-t="Point the camera at the room’s QR code. The picture stays on this device."></p>
   </dialog>
   <div id="palette" class="card" role="menu" hidden></div>
   <script type="module" src="/src/main.ts"></script>

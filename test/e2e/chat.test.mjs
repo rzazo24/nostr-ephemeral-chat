@@ -376,6 +376,47 @@ describe('ephemeral chat', () => {
     assert.equal(await a.locator('#log li.back').count(), 0, 'forgotten')
   })
 
+  it('joining by link or QR: a pasted link of this chat opens that room, another site is refused, and the camera reads a shown QR (jsQR, as on iPhone)', async () => {
+    const a = await open(normal)
+    await online(a)
+    const room = new URL(a.url()).hash
+    // paste: another site is refused and nothing changes; this chat's link opens the room
+    const b = await open(normal, { device: 'iPhone 13' })
+    await online(b)
+    await b.tap('#new')
+    await b.fill('#join-input', 'https://evil.example/' + room)
+    await b.tap('#join-form button')
+    assert.match(await b.locator('#join-error').innerText(), /another site/)
+    await Promise.all([b.waitForEvent('load'), (async () => { await b.fill('#join-input', ` ${a.url()} `); await b.tap('#join-form button') })()])
+    await online(b)
+    assert.equal(new URL(b.url()).hash, room)
+    assert.equal(new URL(b.url()).search, '', 'the ?back marker is taken out again')
+    // QR: a pretend camera shows the room's QR; the built-in reader is removed so jsQR (the iPhone path) does the reading
+    const qrcode = (await import(new URL('../../node_modules/qrcode-generator/dist/qrcode.mjs', import.meta.url))).default
+    const q = qrcode(0, 'M'); q.addData(a.url()); q.make()
+    const ctx = await browser.newContext({ ...devices['Pixel 7'] }); contexts.push(ctx)
+    await ctx.addInitScript((src) => {
+      delete window.BarcodeDetector
+      navigator.mediaDevices.getUserMedia = async () => {
+        const img = new Image(); img.src = src; await img.decode()
+        const c = document.createElement('canvas'); c.width = c.height = 480
+        const g = c.getContext('2d'); const draw = () => { g.fillStyle = '#fff'; g.fillRect(0, 0, 480, 480); g.drawImage(img, 60, 60, 360, 360); requestAnimationFrame(draw) }; draw()
+        return c.captureStream(15)
+      }
+    }, q.createDataURL(8, 4))
+    const c = await ctx.newPage()
+    c.on('pageerror', (e) => problems.push(`pageerror: ${e.message}`))
+    c.on('console', (m) => { if (m.type() === 'error') problems.push(`console: ${m.text()}`) })
+    await c.goto(normal.appUrl)
+    await online(c)
+    await c.tap('#new')
+    await Promise.all([c.waitForEvent('load', { timeout: 20000 }), c.tap('#scan-btn')])
+    await online(c)
+    assert.equal(new URL(c.url()).hash, room, 'the QR opened the same room')
+    await c.fill('#text', 'scanned in'); await c.tap('#form button[type=submit]') // a phone: Enter adds a line
+    await a.waitForFunction(() => document.getElementById('log').innerText.includes('scanned in'))
+  })
+
   it('no console errors, uncaught exceptions or CSP violations anywhere in the run', () => {
     assert.deepEqual(problems.filter((p) => !/Failed to load resource|net::ERR_INTERNET_DISCONNECTED/.test(p)), [])
   })

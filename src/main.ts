@@ -8,6 +8,7 @@ import { splitLinks } from './linkify'
 import { isRateLimited } from './outbox'
 import * as notify from './notify'
 import { qrDataUrl } from './qr'
+import { scanQR } from './scan'
 import { forgetRoom, lastRoom, rememberRoom } from './lastroom'
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T
@@ -379,14 +380,37 @@ newMenu.querySelectorAll<HTMLButtonElement>('[data-keep]').forEach((b) => b.addE
 
 // "Or paste a room link": the installed app is always opened without a link (on iPhone a tapped link opens Safari instead), so a room
 // someone sent can be pasted here. Only this chat's own links, or a bare room id; nothing is read from the clipboard by itself.
-$('join-form').addEventListener('submit', (e) => {
-  e.preventDefault()
-  const got = pastedRoom($<HTMLInputElement>('join-input').value, location.origin), err = $('join-error')
-  if ('error' in got) { err.textContent = t(got.error === 'other-site' ? 'That link is from another site, not from this chat.' : 'That is not a room link.'); err.hidden = false; return }
-  err.hidden = true
+const joinError = (msg: Parameters<typeof t>[0]) => { const err = $('join-error'); err.textContent = t(msg); err.hidden = false }
+function joinFrom(text: string) {
+  const got = pastedRoom(text, location.origin)
+  if ('error' in got) { joinError(got.error === 'other-site' ? 'That link is from another site, not from this chat.' : 'That is not a room link.'); return }
+  $('join-error').hidden = true
   if (got.id === roomId) { showNewMenu(false); return }
   openRoom(got.id)
+}
+$('join-form').addEventListener('submit', (e) => { e.preventDefault(); joinFrom($<HTMLInputElement>('join-input').value) })
+
+// "Scan QR": the other phone shows the room's QR (the QR button), this one reads it. Same checks as a pasted link. The camera is off
+// again as soon as a code is read, on Cancel, or when the app goes to the background.
+const scanDialog = $<HTMLDialogElement>('scan')
+let scanning: ReturnType<typeof scanQR> | null = null
+if ((navigator as { mediaDevices?: MediaDevices }).mediaDevices) $('scan-btn').hidden = false // no camera API (or not a secure page): only pasting
+$('scan-btn').addEventListener('click', async () => {
+  $('join-error').hidden = true
+  scanDialog.showModal(); scanDialog.focus({ preventScroll: true })
+  scanning = scanQR($<HTMLVideoElement>('scan-video'))
+  try {
+    const text = await scanning.result
+    scanDialog.close()
+    if (text) joinFrom(text)
+  } catch {
+    scanDialog.close()
+    joinError('The camera could not be opened. Check the permission, or paste the link instead.')
+  }
 })
+scanDialog.addEventListener('close', () => { scanning?.stop(); scanning = null })
+$('scan-close').addEventListener('click', () => scanDialog.close())
+document.addEventListener('visibilitychange', () => { if (document.hidden && scanDialog.open) scanDialog.close() })
 $('join-input').addEventListener('input', () => { $('join-error').hidden = true })
 
 document.querySelectorAll<HTMLElement>('[data-lang]').forEach((b) => b.addEventListener('click', () => { setLang(b.dataset.lang as Lang); render() }))
