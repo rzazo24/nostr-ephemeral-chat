@@ -37,4 +37,20 @@ export function randomRoomId(keep: Keep = 0): string {
 }
 
 export const validRoomId = (s: string) => /^[a-z0-9]{8,64}(-24h|-7d)?$/.test(s)
+/** A room someone pasted: the whole link of this chat (any other site is refused, so a look-alike link cannot take you elsewhere)
+ *  or just the room id, with or without "#". Spaces and line breaks that slip in when copying are ignored. */
+export function pastedRoom(text: string, origin: string): { id: string } | { error: 'other-site' | 'not-a-room' } {
+  const s = text.replace(/\s+/g, '')
+  let id = s.replace(/^#/, '')
+  const bare = !/^https?:\/\//i.test(s)
+  if (!bare) {
+    let u: URL
+    try { u = new URL(s) } catch { return { error: 'not-a-room' } }
+    if (u.origin !== origin) return { error: 'other-site' }
+    id = u.hash.slice(1)
+  }
+  // a bare id must look like one this chat makes (16 random characters), so an ordinary word is not taken for a room
+  const ok = bare ? new RegExp(`^[${ALPHABET}]{16}(-24h|-7d)?$`).test(id) : validRoomId(id)
+  return ok ? { id } : { error: 'not-a-room' }
+}
 export const keepOf = (roomId: string): Keep => (roomId.endsWith('-24h') ? 86400 : roomId.endsWith('-7d') ? 604800 : 0)

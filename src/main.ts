@@ -1,7 +1,7 @@
 import './style.css'
 import { joinRoom } from './chat'
 import { getLang, setLang, t, type Lang } from './i18n'
-import { keepOf, randomRoomId, validRoomId, type Keep } from './names'
+import { keepOf, pastedRoom, randomRoomId, validRoomId, type Keep } from './names'
 import { Reactions, REACTIONS, type Reaction } from './reactions'
 import { EMOJIS } from './emojis'
 import { splitLinks } from './linkify'
@@ -370,6 +370,20 @@ newMenu.querySelectorAll<HTMLButtonElement>('[data-keep]').forEach((b) => b.addE
   location.hash = randomRoomId(Number(b.dataset.keep) as Keep)
   setTimeout(() => location.reload(), 150)
 }))
+
+// "Or paste a room link": the installed app is always opened without a link (on iPhone a tapped link opens Safari instead), so a room
+// someone sent can be pasted here. Only this chat's own links, or a bare room id; nothing is read from the clipboard by itself.
+$('join-form').addEventListener('submit', (e) => {
+  e.preventDefault()
+  const got = pastedRoom($<HTMLInputElement>('join-input').value, location.origin), err = $('join-error')
+  if ('error' in got) { err.textContent = t(got.error === 'other-site' ? 'That link is from another site, not from this chat.' : 'That is not a room link.'); err.hidden = false; return }
+  err.hidden = true
+  if (got.id === roomId) { showNewMenu(false); return }
+  room.leave()
+  location.hash = got.id
+  setTimeout(() => location.reload(), 150)
+})
+$('join-input').addEventListener('input', () => { $('join-error').hidden = true })
 
 document.querySelectorAll<HTMLElement>('[data-lang]').forEach((b) => b.addEventListener('click', () => { setLang(b.dataset.lang as Lang); render() }))
 

@@ -41,3 +41,20 @@ describe('Typing', () => {
     expect(t.active()).toEqual([])
   })
 })
+
+describe('joining a pasted room', async () => {
+  const { pastedRoom } = await import('./names')
+  const o = 'https://chat.hivescope.xyz'
+  it('takes this chat\'s whole link or a bare id (with or without #, stray spaces ignored), keeps the 24 h / 7 day suffix, refuses other sites and anything else', () => {
+    expect(pastedRoom('https://chat.hivescope.xyz/#abcdefghijkmnpqr', o)).toEqual({ id: 'abcdefghijkmnpqr' })
+    expect(pastedRoom(' https://chat.hivescope.xyz/?x=1#abcdefghijkmnpqr-24h \n', o)).toEqual({ id: 'abcdefghijkmnpqr-24h' })
+    expect(pastedRoom('#abcdefghijkmnpqr-7d', o)).toEqual({ id: 'abcdefghijkmnpqr-7d' })
+    expect(pastedRoom('abcdefgh ijkmnpqr', o)).toEqual({ id: 'abcdefghijkmnpqr' })
+    expect(pastedRoom('https://chat.evil.example/#abcdefghijkmnpqr', o)).toEqual({ error: 'other-site' })
+    expect(pastedRoom('http://chat.hivescope.xyz/#abcdefghijkmnpqr', o)).toEqual({ error: 'other-site' })
+    expect(pastedRoom('https://chat.hivescope.xyz/', o)).toEqual({ error: 'not-a-room' })
+    expect(pastedRoom('hello there', o)).toEqual({ error: 'not-a-room' })
+    expect(pastedRoom('#abcdefghijkmnpqr-30d', o)).toEqual({ error: 'not-a-room' })
+    expect(pastedRoom('', o)).toEqual({ error: 'not-a-room' })
+  })
+})
