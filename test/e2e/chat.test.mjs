@@ -136,7 +136,7 @@ describe('ephemeral chat', () => {
     await sleep(600)
     assert.equal(await a.locator('#log li.mine').count(), 0, 'Enter did not send on a touch screen')
     assert.equal(await a.inputValue('#text'), 'first\nsecond')
-    await a.tap('button[type=submit]')
+    await a.tap('#form button[type=submit]')
     await theirs(b, 'first\nsecond')
   })
 
