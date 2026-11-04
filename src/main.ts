@@ -271,7 +271,7 @@ if (back) {
   const drop = Object.assign(document.createElement('button'), { type: 'button', textContent: t('Forget') })
   // a fresh page for the room, not this one reloaded: on some Android phones (an installed app on a Xiaomi) a reload kept a wrong screen height
   // and the message box ended up off screen. The ?back query only makes it a new address; it is removed again once the page is up.
-  go.addEventListener('click', () => { room.leave(); location.replace(`${location.pathname}?back=${Date.now()}#${back.id}`) })
+  go.addEventListener('click', () => openRoom(back.id))
   drop.addEventListener('click', () => { forgetRoom(); li.remove() })
   li.append(Object.assign(document.createElement('span'), { textContent: t('Your last room that keeps its messages:') }), go, drop)
   log.append(li)
@@ -360,15 +360,21 @@ $('share').addEventListener('click', async () => {
   setTimeout(render, 1500)
 })
 
+/** Leaves this room and opens another as a new address (?back=…, taken out again on load). Changing only the #fragment and reloading
+ *  is not reliable in the installed app on iPhone: the page could come back still tied to the old room, so nothing arrived either way. */
+function openRoom(id: string) {
+  room.leave()
+  const q = new URLSearchParams(location.search); q.set('back', String(Date.now()))
+  location.replace(`${location.pathname}?${q}#${id}`)
+}
+
 // "New room" asks how long the new room keeps its messages (ephemeral first, as always); the choice goes in the new link.
 const newMenu = $('new-menu')
 const showNewMenu = (open: boolean) => { newMenu.hidden = !open; $('new').setAttribute('aria-expanded', String(open)) }
 $('new').addEventListener('click', () => showNewMenu(newMenu.hidden !== false))
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !newMenu.hidden) showNewMenu(false) })
 newMenu.querySelectorAll<HTMLButtonElement>('[data-keep]').forEach((b) => b.addEventListener('click', () => {
-  room.leave()
-  location.hash = randomRoomId(Number(b.dataset.keep) as Keep)
-  setTimeout(() => location.reload(), 150)
+  openRoom(randomRoomId(Number(b.dataset.keep) as Keep))
 }))
 
 // "Or paste a room link": the installed app is always opened without a link (on iPhone a tapped link opens Safari instead), so a room
@@ -379,9 +385,7 @@ $('join-form').addEventListener('submit', (e) => {
   if ('error' in got) { err.textContent = t(got.error === 'other-site' ? 'That link is from another site, not from this chat.' : 'That is not a room link.'); err.hidden = false; return }
   err.hidden = true
   if (got.id === roomId) { showNewMenu(false); return }
-  room.leave()
-  location.hash = got.id
-  setTimeout(() => location.reload(), 150)
+  openRoom(got.id)
 })
 $('join-input').addEventListener('input', () => { $('join-error').hidden = true })
 
